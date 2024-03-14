@@ -7,8 +7,8 @@ exports.Onshape = void 0;
 const OnshapeDocument_1 = require("./OnshapeDocument");
 const config_json_1 = __importDefault(require("../../config.json"));
 exports.Onshape = {
-    getDocuments() {
-        return fetch(`https://cad.onshape.com/api/v6/documents?q=Crescendo&filter=9&owner=${config_json_1.default.onshape_team_id}`, {
+    getDocuments(query) {
+        return fetch(`https://cad.onshape.com/api/v6/documents?q=${query}&filter=9&owner=${config_json_1.default.onshape_team_id}`, {
             method: "GET",
             headers: {
                 "Authorization": "Basic " + config_json_1.default.onshape_auth_code

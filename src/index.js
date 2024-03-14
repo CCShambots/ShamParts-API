@@ -31,34 +31,45 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const data_source_1 = require("./data-source");
-const Part_1 = require("./entity/Part");
-const Onshape_1 = require("./util/Onshape");
-const node_fs_1 = require("node:fs");
-const Process = __importStar(require("process"));
-console.log((0, node_fs_1.readdirSync)("./"));
-if (!(0, node_fs_1.existsSync)("./config.json")) {
-    console.log("Config file not found, copying default config");
-    Process.exit(1);
-}
+const express_1 = __importDefault(require("express"));
+const morgan_1 = __importDefault(require("morgan"));
+const index_1 = __importDefault(require("./routes/index"));
+const http = __importStar(require("http"));
 data_source_1.AppDataSource.initialize()
     .then(() => __awaiter(void 0, void 0, void 0, function* () {
-    const part = new Part_1.Part();
-    part.number = "5907-1";
-    part.material = "Aluminum";
-    part.weight = 0.5;
-    part.quantityNeeded = 10;
-    part.quantityInStock = 10;
-    part.quantityRequested = 10;
-    // await AppDataSource.manager.save(part)
-    // console.log("Post has been saved: ", part)
-    // const parts = await AppDataSource.manager
-    //   .createQueryBuilder(Part, "part")
-    //   .getMany();
-    // console.log("All parts: ", parts)\
-    var res = yield Onshape_1.Onshape.getDocuments();
-    console.log(res);
+    var _a;
+    const router = (0, express_1.default)();
+    router.use((0, morgan_1.default)("dev"));
+    router.use(express_1.default.urlencoded({ extended: false }));
+    router.use(express_1.default.json());
+    router.use((req, res, next) => {
+        res.header("Access-Control-Allow-Origin", "*");
+        res.header("Access-Control-Allow-Headers", "origin, X-Requested-With, Content-Type, Accept");
+        if (req.method === "OPTIONS") {
+            res.header("Access-Control-Allow-Methods", "GET PATCH POST PUT DELETE");
+            return res.status(200).json({});
+        }
+        next();
+    });
+    router.use("/", index_1.default);
+    router.use((req, res, next) => {
+        const error = new Error("Not found");
+        return res.status(404).json({
+            message: error.message
+        });
+    });
+    const httpServer = http.createServer(router);
+    const PORT = (_a = process.env.PORT) !== null && _a !== void 0 ? _a : 3000;
+    httpServer.listen(PORT, () => {
+        console.log(`Server is running on port ${PORT}`);
+    });
+    // var res = await Onshape.getDocuments();
+    // console.log(res)
 }))
     .catch((error) => console.log("Error: ", error));
 //# sourceMappingURL=index.js.map

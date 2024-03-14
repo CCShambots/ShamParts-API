@@ -1,32 +1,48 @@
-import { Post } from "./entity/Post"
 import { AppDataSource } from "./data-source"
 import {Part} from "./entity/Part";
 import {Onshape} from "./util/Onshape";
-
+import express, {Express} from 'express';
+import test from "./routes/test";
+import morgan from "morgan";
+import routes from "./routes/index"
+import * as http from "http";
 
 AppDataSource.initialize()
   .then(async () => {
+    const router: Express = express();
 
-    const part = new Part()
-      part.number = "5907-1"
-      part.material = "Aluminum"
-      part.weight = 0.5
-    part.quantityNeeded = 10
-    part.quantityInStock = 10
-    part.quantityRequested = 10
+    router.use(morgan("dev"));
+    router.use(express.urlencoded({ extended: false }));
+    router.use(express.json());
 
-    // await AppDataSource.manager.save(part)
+    router.use((req, res, next) => {
+        res.header("Access-Control-Allow-Origin", "*");
+        res.header("Access-Control-Allow-Headers", "origin, X-Requested-With, Content-Type, Accept");
 
-    // console.log("Post has been saved: ", part)
+        if(req.method === "OPTIONS") {
+            res.header("Access-Control-Allow-Methods", "GET PATCH POST PUT DELETE");
+            return res.status(200).json({});
+        }
+        next();
+    })
 
-    // const parts = await AppDataSource.manager
-    //   .createQueryBuilder(Part, "part")
-    //   .getMany();
+      router.use("/", routes)
 
-    // console.log("All parts: ", parts)\
+      router.use((req, res, next) => {
+          const error = new Error("Not found");
+          return res.status(404).json({
+              message: error.message
+          })
+      })
 
-    var res = await Onshape.getDocuments();
+      const httpServer = http.createServer(router);
+        const PORT = process.env.PORT ?? 3000;
+        httpServer.listen(PORT, () => {
+            console.log(`Server is running on port ${PORT}`)
+        })
 
-    console.log(res)
+    // var res = await Onshape.getDocuments();
+
+    // console.log(res)
   })
   .catch((error) => console.log("Error: ", error))
