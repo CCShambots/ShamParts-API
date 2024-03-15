@@ -9,16 +9,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAssemblies = exports.getDocuments = void 0;
-const Onshape_1 = require("../util/Onshape");
-const getDocuments = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    let result = yield Onshape_1.Onshape.getDocuments(req.query.query);
-    return res.send(result);
+exports.createProject = void 0;
+const Project_1 = require("../entity/Project");
+const createProject = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    let project = new Project_1.Project();
+    project.name = req.query.name;
+    project.onshape_id = req.query.oid;
 });
-exports.getDocuments = getDocuments;
-const getAssemblies = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    let result = yield Onshape_1.Onshape.getAssemblies(req.query.did, req.query.wid);
-    return res.send(result);
-});
-exports.getAssemblies = getAssemblies;
-//# sourceMappingURL=onshape.controller.js.map
+exports.createProject = createProject;
+//# sourceMappingURL=project.controller.js.map

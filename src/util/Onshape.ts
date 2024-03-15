@@ -1,5 +1,6 @@
 import {OnshapeDocument} from "./OnshapeDocument";
 import configJson from "../../config.json";
+import {OnshapeAssembly} from "./OnshapeAssembly";
 
 function fetchFromOnshape(url:string) {
     return fetch(`https://cad.onshape.com/api/v6/${url}`, {
@@ -17,6 +18,20 @@ export var Onshape = {
 
             return json.items.map((item: any) => {
                 return OnshapeDocument.fromJSON(item)
+            })
+        });
+    },
+
+    getAssemblies(documentId:string, workspaceID:string):Promise<OnshapeAssembly[]> {
+        return fetchFromOnshape(`documents/d/${documentId}/w/${workspaceID}/elements`)
+            .then((response) => response.json()).then((json) => {
+
+                console.log(json)
+
+            var filteredForAssemblies = json.filter(e => e.elementType === "ASSEMBLY")
+
+            return filteredForAssemblies.map((item: any) => {
+                return new OnshapeAssembly(item.id, item.name)
             })
         });
     }

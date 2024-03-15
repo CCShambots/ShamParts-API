@@ -1,4 +1,4 @@
-import {Column, Double, Entity, PrimaryGeneratedColumn} from "typeorm";
+import {Column, Entity, PrimaryGeneratedColumn} from "typeorm";
 
 @Entity()
 export class Part  {
@@ -10,9 +10,6 @@ export class Part  {
 
     @Column("text")
     material: string
-
-    @Column('decimal')
-    weight: number
 
     @Column()
     quantityNeeded: number

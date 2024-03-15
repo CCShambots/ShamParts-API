@@ -9,36 +9,30 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Part = void 0;
+exports.Assembly = void 0;
 const typeorm_1 = require("typeorm");
-let Part = class Part {
+const Part_1 = require("./Part");
+let Assembly = class Assembly {
 };
 __decorate([
     (0, typeorm_1.PrimaryGeneratedColumn)(),
     __metadata("design:type", Number)
-], Part.prototype, "id", void 0);
+], Assembly.prototype, "id", void 0);
 __decorate([
     (0, typeorm_1.Column)(),
     __metadata("design:type", String)
-], Part.prototype, "number", void 0);
+], Assembly.prototype, "name", void 0);
 __decorate([
-    (0, typeorm_1.Column)("text"),
+    (0, typeorm_1.Column)(),
     __metadata("design:type", String)
-], Part.prototype, "material", void 0);
+], Assembly.prototype, "onshape_id", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
-    __metadata("design:type", Number)
-], Part.prototype, "quantityNeeded", void 0);
-__decorate([
-    (0, typeorm_1.Column)(),
-    __metadata("design:type", Number)
-], Part.prototype, "quantityInStock", void 0);
-__decorate([
-    (0, typeorm_1.Column)(),
-    __metadata("design:type", Number)
-], Part.prototype, "quantityRequested", void 0);
-Part = __decorate([
+    (0, typeorm_1.ManyToMany)((type) => Part_1.Part, { cascade: true }),
+    (0, typeorm_1.JoinTable)(),
+    __metadata("design:type", Array)
+], Assembly.prototype, "parts", void 0);
+Assembly = __decorate([
     (0, typeorm_1.Entity)()
-], Part);
-exports.Part = Part;
-//# sourceMappingURL=Part.js.map
+], Assembly);
+exports.Assembly = Assembly;
+//# sourceMappingURL=Assembly.js.map
