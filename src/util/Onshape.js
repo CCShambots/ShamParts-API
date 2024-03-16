@@ -8,6 +8,7 @@ const OnshapeDocument_1 = require("./OnshapeDocument");
 const config_json_1 = __importDefault(require("../../config.json"));
 const OnshapeAssembly_1 = require("./OnshapeAssembly");
 function fetchFromOnshape(url) {
+    console.log(`https://cad.onshape.com/api/v6/${url}`);
     return fetch(`https://cad.onshape.com/api/v6/${url}`, {
         method: "GET",
         headers: {
@@ -29,6 +30,16 @@ exports.Onshape = {
             .then((response) => response.json()).then((json) => {
             const filteredForAssemblies = json.filter(e => e.elementType === "ASSEMBLY");
             return filteredForAssemblies.map((item) => OnshapeAssembly_1.OnshapeAssembly.fromJSON(item));
+        });
+    },
+    getPartsFromAssembly(documentId, workspaceID, assemblyId) {
+        return fetchFromOnshape(`assemblies/d/${documentId}/w/${workspaceID}/e/${assemblyId}/bom?indented=false&thumbnail=true&generateIfAbsent=true`)
+            .then((response) => response.json()).then((json) => {
+            console.log(json);
+            return json.items.map((item) => {
+                return null;
+                // return new Part(item.partId, item.partName, item.partNumber, item.quantity, item.thumbnail);
+            });
         });
     },
     parseThumbnailInfo(sizes) {

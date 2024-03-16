@@ -1,5 +1,5 @@
 import express from 'express';
-import {createProject} from "../controllers/project.controller";
+import {createProject, testMultiResult} from "../controllers/project.controller";
 
 const router = express.Router();
 

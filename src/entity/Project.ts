@@ -1,4 +1,4 @@
-import {Column, Entity, JoinTable, ManyToMany, PrimaryGeneratedColumn} from "typeorm";
+import {Column, Entity, JoinTable, ManyToMany, OneToOne, PrimaryGeneratedColumn} from "typeorm";
 import {Assembly} from "./Assembly";
 import {Part} from "./Part";
 
@@ -14,6 +14,9 @@ export class Project {
     onshape_id: string
 
     @Column()
+    default_workspace: string
+
+    @OneToOne((type) => Assembly, {cascade: true, eager: true, nullable: true})
     @JoinTable()
     mainAssembly:Assembly
 
