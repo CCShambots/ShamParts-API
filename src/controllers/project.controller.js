@@ -12,9 +12,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.createProject = void 0;
 const Project_1 = require("../entity/Project");
 const createProject = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log(req.body);
     let project = new Project_1.Project();
     project.name = req.query.name;
     project.onshape_id = req.query.oid;
+    return res.status(400).send("Not implemented");
 });
 exports.createProject = createProject;
 //# sourceMappingURL=project.controller.js.map

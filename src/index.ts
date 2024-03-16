@@ -40,9 +40,6 @@ AppDataSource.initialize()
         httpServer.listen(PORT, () => {
             console.log(`Server is running on port ${PORT}`)
         })
-
-    // var res = await Onshape.getDocuments();
-
-    // console.log(res)
+      
   })
   .catch((error) => console.log("Error: ", error))

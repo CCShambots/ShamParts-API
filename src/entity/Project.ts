@@ -13,9 +13,9 @@ export class Project {
     @Column()
     onshape_id: string
 
-    @ManyToMany((type) => Assembly, {cascade: true})
+    @Column()
     @JoinTable()
-    assemblies: Assembly[]
+    mainAssembly:Assembly
 
     @ManyToMany((type) => Part, {cascade: true})
     @JoinTable()

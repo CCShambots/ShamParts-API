@@ -23,16 +23,18 @@ export var Onshape = {
     },
 
     getAssemblies(documentId:string, workspaceID:string):Promise<OnshapeAssembly[]> {
-        return fetchFromOnshape(`documents/d/${documentId}/w/${workspaceID}/elements`)
+        return fetchFromOnshape(`documents/d/${documentId}/w/${workspaceID}/elements?withThumbnails=true`)
             .then((response) => response.json()).then((json) => {
 
-                console.log(json)
+                const filteredForAssemblies = json.filter(e => e.elementType === "ASSEMBLY");
 
-            var filteredForAssemblies = json.filter(e => e.elementType === "ASSEMBLY")
-
-            return filteredForAssemblies.map((item: any) => {
-                return new OnshapeAssembly(item.id, item.name)
-            })
+                return filteredForAssemblies.map((item: any) => OnshapeAssembly.fromJSON(item))
         });
+    },
+
+    parseThumbnailInfo(sizes:any[]):string {
+        const filtered = sizes.filter(e => e["size"] === "300x300");
+
+        return filtered[0]?.href ?? ""
     }
 }

@@ -25,14 +25,16 @@ exports.Onshape = {
         });
     },
     getAssemblies(documentId, workspaceID) {
-        return fetchFromOnshape(`documents/d/${documentId}/w/${workspaceID}/elements`)
+        return fetchFromOnshape(`documents/d/${documentId}/w/${workspaceID}/elements?withThumbnails=true`)
             .then((response) => response.json()).then((json) => {
-            console.log(json);
-            var filteredForAssemblies = json.filter(e => e.elementType === "ASSEMBLY");
-            return filteredForAssemblies.map((item) => {
-                return new OnshapeAssembly_1.OnshapeAssembly(item.id, item.name);
-            });
+            const filteredForAssemblies = json.filter(e => e.elementType === "ASSEMBLY");
+            return filteredForAssemblies.map((item) => OnshapeAssembly_1.OnshapeAssembly.fromJSON(item));
         });
+    },
+    parseThumbnailInfo(sizes) {
+        var _a, _b;
+        const filtered = sizes.filter(e => e["size"] === "300x300");
+        return (_b = (_a = filtered[0]) === null || _a === void 0 ? void 0 : _a.href) !== null && _b !== void 0 ? _b : "";
     }
 };
 //# sourceMappingURL=Onshape.js.map

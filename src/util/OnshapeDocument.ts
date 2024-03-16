@@ -1,4 +1,5 @@
 import configJson from "../../config.json";
+import {Onshape} from "./Onshape";
 
 export class OnshapeDocument {
     id: string
@@ -16,10 +17,6 @@ export class OnshapeDocument {
     }
 
     public static fromJSON(json: any): OnshapeDocument {
-        var sorted = json.thumbnail.sizes.filter(e => e["size"] === "300x300");
-
-        console.log(json)
-
-        return new OnshapeDocument(json.id, json.name, sorted[0]?.href ?? "", json.defaultWorkspace.id);
+        return new OnshapeDocument(json.id, json.name, Onshape.parseThumbnailInfo(json.thumbnail.sizes), json.defaultWorkspace.id);
     }
 }
