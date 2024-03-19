@@ -32,13 +32,12 @@ __decorate([
     __metadata("design:type", String)
 ], Project.prototype, "default_workspace", void 0);
 __decorate([
-    (0, typeorm_1.OneToOne)((type) => Assembly_1.Assembly, { cascade: true, eager: true, nullable: true }),
-    (0, typeorm_1.JoinTable)(),
+    (0, typeorm_1.OneToOne)((type) => Assembly_1.Assembly, { cascade: true, nullable: true }),
+    (0, typeorm_1.JoinColumn)(),
     __metadata("design:type", Assembly_1.Assembly)
-], Project.prototype, "mainAssembly", void 0);
+], Project.prototype, "main_assembly", void 0);
 __decorate([
-    (0, typeorm_1.ManyToMany)((type) => Part_1.Part, { cascade: true }),
-    (0, typeorm_1.JoinTable)(),
+    (0, typeorm_1.OneToMany)((type) => Part_1.Part, part => part.project, { cascade: true }),
     __metadata("design:type", Array)
 ], Project.prototype, "individual_parts", void 0);
 Project = __decorate([

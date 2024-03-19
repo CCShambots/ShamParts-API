@@ -27,7 +27,7 @@ __decorate([
     __metadata("design:type", String)
 ], Assembly.prototype, "onshape_id", void 0);
 __decorate([
-    (0, typeorm_1.ManyToMany)((type) => Part_1.Part, { cascade: true }),
+    (0, typeorm_1.OneToMany)((type) => Part_1.Part, part => part.assembly, { cascade: true }),
     (0, typeorm_1.JoinTable)(),
     __metadata("design:type", Array)
 ], Assembly.prototype, "parts", void 0);

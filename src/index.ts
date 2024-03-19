@@ -1,11 +1,10 @@
 import { AppDataSource } from "./data-source"
-import {Part} from "./entity/Part";
-import {Onshape} from "./util/Onshape";
 import express, {Express} from 'express';
-import test from "./routes/test";
 import morgan from "morgan";
 import routes from "./routes/index"
 import * as http from "http";
+import 'reflect-metadata';
+
 
 AppDataSource.initialize()
   .then(async () => {

@@ -8,9 +8,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAssemblies = exports.getDocuments = void 0;
+exports.getOnshapeKey = exports.getAssemblies = exports.getDocuments = void 0;
 const Onshape_1 = require("../util/Onshape");
+const config_json_1 = __importDefault(require("../../config.json"));
 const getDocuments = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     let result = yield Onshape_1.Onshape.getDocuments(req.query.query);
     return res.send(result);
@@ -21,4 +25,8 @@ const getAssemblies = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     return res.send(result);
 });
 exports.getAssemblies = getAssemblies;
+const getOnshapeKey = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    return res.send(config_json_1.default.onshape_auth_code);
+});
+exports.getOnshapeKey = getOnshapeKey;
 //# sourceMappingURL=onshape.controller.js.map

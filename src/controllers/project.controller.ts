@@ -6,7 +6,6 @@ import {Onshape} from "../util/Onshape";
 
 
 export const createProject = async (req:Request, res:Response) => {
-    console.log(req.body);
 
     const bodyInfo = req.body
 
@@ -22,13 +21,47 @@ export const createProject = async (req:Request, res:Response) => {
     project.name = bodyInfo.name as string;
     project.onshape_id = bodyInfo.doc_id as string;
     project.default_workspace = bodyInfo.default_workspace as string;
-    project.mainAssembly = new Assembly();
-    project.mainAssembly.onshape_id = bodyInfo.main_assembly as string;
+    project.main_assembly = new Assembly();
+    project.main_assembly.onshape_id = bodyInfo.main_assembly as string;
+    project.main_assembly.name = bodyInfo.name + " Main Assembly" as string;
 
-    Onshape.getPartsFromAssembly(project.onshape_id, project.default_workspace, project.mainAssembly.onshape_id)
+    project.main_assembly.parts =
+        await Onshape.getPartsFromAssembly(
+            project.onshape_id,
+            project.default_workspace,
+            project.main_assembly.onshape_id
+        );
 
-    return res.status(400).send("Not implemented");
+    console.log(project.main_assembly.parts)
 
+    await AppDataSource.manager.save(project);
+
+    return res.status(200).send(project);
+
+}
+
+export const getProjects = async (req:Request, res:Response) => {
+    const projects = await AppDataSource.manager
+      .createQueryBuilder(Project, "project")
+      .getMany();
+
+    return res.send(projects.map(e => e.name));
+}
+
+export const getProject = async (req:Request, res:Response) => {
+
+    //TODO: Make loading of individual parts work
+
+    const project = await AppDataSource.manager
+      .createQueryBuilder(Project, "project")
+        .innerJoinAndSelect("project.main_assembly", "assembly")
+        .innerJoinAndSelect("assembly.parts", "part")
+        .where("project.name = :name", {name: req.params.name})
+        .getOne();
+
+    project.individual_parts = [];
+    
+    return res.send(project);
 }
 
 export const testMultiResult = async (req:Request, res:Response) => {

@@ -1,5 +1,6 @@
-import {Column, Entity, JoinTable, ManyToMany, PrimaryGeneratedColumn} from "typeorm";
+import {Column, Entity, JoinTable, ManyToMany, OneToMany, OneToOne, PrimaryGeneratedColumn} from "typeorm";
 import {Part} from "./Part";
+import {Project} from "./Project";
 
 @Entity()
 export class Assembly {
@@ -12,7 +13,7 @@ export class Assembly {
     @Column()
     onshape_id:string
 
-    @ManyToMany((type) => Part, {cascade: true})
+    @OneToMany((type) => Part, part => part.assembly, {cascade: true})
     @JoinTable()
     parts: Part[]
 

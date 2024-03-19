@@ -2,15 +2,24 @@ import {OnshapeDocument} from "./OnshapeDocument";
 import configJson from "../../config.json";
 import {OnshapeAssembly} from "./OnshapeAssembly";
 import {Part} from "../entity/Part";
+import {AppDataSource} from "../data-source";
+import {Assembly} from "../entity/Assembly";
+import {Project} from "../entity/Project";
 
 function fetchFromOnshape(url:string) {
-    console.log(`https://cad.onshape.com/api/v6/${url}`)
+    console.log(`Making call to: https://cad.onshape.com/api/v6/${url}`)
     return fetch(`https://cad.onshape.com/api/v6/${url}`, {
         method: "GET",
         headers: {
             "Authorization": "Basic " + configJson.onshape_auth_code
         }
     });
+}
+
+type headerInfo = {
+    name: string,
+    material: string,
+    quantity: string,
 }
 
 export var Onshape = {
@@ -33,16 +42,62 @@ export var Onshape = {
                 return filteredForAssemblies.map((item: any) => OnshapeAssembly.fromJSON(item))
         });
     },
-    getPartsFromAssembly(documentId:string, workspaceID:string, assemblyId:string):Promise<Part[]> {
-        return fetchFromOnshape(`assemblies/d/${documentId}/w/${workspaceID}/e/${assemblyId}/bom?indented=false&thumbnail=true&generateIfAbsent=true`)
-            .then((response) => response.json()).then((json) => {
-                console.log(json)
+    async getPartsFromAssembly(documentId: string, workspaceID: string, assemblyId: string): Promise<Part[]> {
+        try {
+            const response = await fetchFromOnshape(`assemblies/d/${documentId}/w/${workspaceID}/e/${assemblyId}/bom?indented=false&generateIfAbsent=true`);
+            const json = await response.json();
 
-                return json.items.map((item: any) => {
-                    return null;
-                    // return new Part(item.partId, item.partName, item.partNumber, item.quantity, item.thumbnail);
-                })
-        });
+            //load existing parts
+            const parts = await Part.getPartsInDB();
+
+            const headers = Onshape.getHeaders(json);
+            return await json.rows.map((item: any) => {
+
+                // console.log(item)
+                // console.log(headers.material)
+                // console.log(item["headerIdToValue"][headers.material])
+
+                const headerIdToValue = item["headerIdToValue"];
+
+                const partNumber = headerIdToValue[headers.name];
+                const partsWithThisNumber = parts.filter(e => e.number === partNumber);
+
+                const partAlreadyExists = partsWithThisNumber.length > 0;
+
+                const part = partsWithThisNumber.length > 0 ? partsWithThisNumber[0] : new Part();
+                part.number = partNumber;
+
+                const materialObjet = headerIdToValue[headers.material];
+
+                if(materialObjet != null) part.material = headerIdToValue[headers.material]["displayName"];
+                //Only set to unknown material if the user hasn't previously set one
+                else if(part.material == null) part.material = "Unknown Material";
+
+                part.quantityNeeded = headerIdToValue[headers.quantity];
+                // part.thumbnail = this.parseThumbnailInfo(item["thumbnailInfo"]["sizes"])
+                part.onshape_id = item["itemSource"]["elementId"]
+
+                if(!partAlreadyExists) {
+                    part.quantityInStock = 0
+                    part.quantityRequested = 0
+                    part.thumbnail = "unloaded"
+                }
+
+                return part;
+            });
+        } catch (e_1) {
+            console.log(e_1);
+        }
+    },
+    getHeaders(jsonData:any):headerInfo {
+        const headers = jsonData["headers"].map(e => {return {name: e.name, id: e.id}})
+        return(
+            {
+                name: headers.filter(e => e.name.toLowerCase() === "name")[0].id,
+                material: headers.filter(e => e.name.toLowerCase() === "material")[0].id,
+                quantity: headers.filter(e => e.name.toLowerCase() === "quantity")[0].id,
+            }
+        )
     },
 
     parseThumbnailInfo(sizes:any[]):string {

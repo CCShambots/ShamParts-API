@@ -8,5 +8,6 @@ const onshape_controller_1 = require("../controllers/onshape.controller");
 const router = express_1.default.Router();
 router.get('/documents', onshape_controller_1.getDocuments);
 router.get('/assemblies', onshape_controller_1.getAssemblies);
+router.get('/key', onshape_controller_1.getOnshapeKey);
 exports.default = router;
 //# sourceMappingURL=onshape.js.map

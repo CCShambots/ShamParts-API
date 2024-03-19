@@ -16,7 +16,7 @@ exports.AppDataSource = new typeorm_1.DataSource({
     password: "5907",
     database: "postgres",
     synchronize: true,
-    logging: true,
+    logging: false,
     entities: [Post_1.Post, Category_1.Category, Part_1.Part, Assembly_1.Assembly, Project_1.Project],
     subscribers: [],
     migrations: [],
