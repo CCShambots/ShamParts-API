@@ -23,9 +23,20 @@ exports.Part = void 0;
 const typeorm_1 = require("typeorm");
 const data_source_1 = require("../data-source");
 const Project_1 = require("./Project");
-const Assembly_1 = require("./Assembly");
 const class_transformer_1 = require("class-transformer");
 let Part = Part_1 = class Part {
+    toJSON() {
+        return {
+            id: this.id,
+            number: this.number,
+            material: this.material,
+            thumbnail: this.thumbnail,
+            onshape_id: this.onshape_id,
+            quantityNeeded: this.quantityNeeded,
+            quantityInStock: this.quantityInStock,
+            quantityRequested: this.quantityRequested
+        };
+    }
     static getPartsInDB() {
         return __awaiter(this, void 0, void 0, function* () {
             return yield data_source_1.AppDataSource.createQueryBuilder(Part_1, "part")
@@ -38,17 +49,11 @@ __decorate([
     __metadata("design:type", Number)
 ], Part.prototype, "id", void 0);
 __decorate([
+    (0, class_transformer_1.Exclude)(),
     (0, typeorm_1.ManyToOne)((type) => Project_1.Project),
     (0, typeorm_1.JoinColumn)(),
-    (0, class_transformer_1.Exclude)(),
     __metadata("design:type", Project_1.Project)
 ], Part.prototype, "project", void 0);
-__decorate([
-    (0, typeorm_1.ManyToOne)((type) => Assembly_1.Assembly),
-    (0, typeorm_1.JoinColumn)(),
-    (0, class_transformer_1.Exclude)(),
-    __metadata("design:type", Assembly_1.Assembly)
-], Part.prototype, "assembly", void 0);
 __decorate([
     (0, typeorm_1.Column)(),
     __metadata("design:type", String)

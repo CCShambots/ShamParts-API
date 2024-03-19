@@ -1,6 +1,5 @@
 import {Project} from "../entity/Project";
 import {Request, Response} from "express";
-import {Assembly} from "../entity/Assembly";
 import {AppDataSource} from "../data-source";
 import {Onshape} from "../util/Onshape";
 
@@ -18,21 +17,19 @@ export const createProject = async (req:Request, res:Response) => {
     }
 
     let project = new Project();
+
     project.name = bodyInfo.name as string;
     project.onshape_id = bodyInfo.doc_id as string;
     project.default_workspace = bodyInfo.default_workspace as string;
-    project.main_assembly = new Assembly();
-    project.main_assembly.onshape_id = bodyInfo.main_assembly as string;
-    project.main_assembly.name = bodyInfo.name + " Main Assembly" as string;
+    project.assembly_onshape_id = bodyInfo.main_assembly as string;
+    project.assembly_name = bodyInfo.name + " Main Assembly" as string;
 
-    project.main_assembly.parts =
+    project.parts =
         await Onshape.getPartsFromAssembly(
-            project.onshape_id,
-            project.default_workspace,
-            project.main_assembly.onshape_id
+            project
         );
 
-    console.log(project.main_assembly.parts)
+    console.log(project.parts)
 
     await AppDataSource.manager.save(project);
 
@@ -54,10 +51,11 @@ export const getProject = async (req:Request, res:Response) => {
 
     const project = await AppDataSource.manager
       .createQueryBuilder(Project, "project")
-        .innerJoinAndSelect("project.main_assembly", "assembly")
-        .innerJoinAndSelect("assembly.parts", "part")
+        .innerJoinAndSelect("project.parts", "part")
         .where("project.name = :name", {name: req.params.name})
         .getOne();
+
+    if(project === null) return res.status(404).send("Project not found");
 
     project.individual_parts = [];
     

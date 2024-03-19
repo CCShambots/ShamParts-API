@@ -3,7 +3,6 @@ import configJson from "../../config.json";
 import {OnshapeAssembly} from "./OnshapeAssembly";
 import {Part} from "../entity/Part";
 import {AppDataSource} from "../data-source";
-import {Assembly} from "../entity/Assembly";
 import {Project} from "../entity/Project";
 
 function fetchFromOnshape(url:string) {
@@ -42,9 +41,9 @@ export var Onshape = {
                 return filteredForAssemblies.map((item: any) => OnshapeAssembly.fromJSON(item))
         });
     },
-    async getPartsFromAssembly(documentId: string, workspaceID: string, assemblyId: string): Promise<Part[]> {
+    async getPartsFromAssembly(project:Project): Promise<Part[]> {
         try {
-            const response = await fetchFromOnshape(`assemblies/d/${documentId}/w/${workspaceID}/e/${assemblyId}/bom?indented=false&generateIfAbsent=true`);
+            const response = await fetchFromOnshape(`assemblies/d/${project.onshape_id}/w/${project.default_workspace}/e/${project.assembly_onshape_id}/bom?indented=false&generateIfAbsent=true`);
             const json = await response.json();
 
             //load existing parts
@@ -66,6 +65,9 @@ export var Onshape = {
 
                 const part = partsWithThisNumber.length > 0 ? partsWithThisNumber[0] : new Part();
                 part.number = partNumber;
+
+                part.project = project;
+
 
                 const materialObjet = headerIdToValue[headers.material];
 
@@ -98,6 +100,13 @@ export var Onshape = {
                 quantity: headers.filter(e => e.name.toLowerCase() === "quantity")[0].id,
             }
         )
+    },
+    getThumbnailForElement(documentId:string, workspaceID:string, elementId:string):Promise<string> {
+        return fetchFromOnshape(`thumbnails/d/${documentId}/w/${workspaceID}/e/${elementId}`)
+            .then((response) => response.json()).then((json) => {
+                return this.parseThumbnailInfo(json.sizes)
+        });
+
     },
 
     parseThumbnailInfo(sizes:any[]):string {

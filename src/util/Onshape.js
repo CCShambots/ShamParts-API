@@ -42,10 +42,10 @@ exports.Onshape = {
             return filteredForAssemblies.map((item) => OnshapeAssembly_1.OnshapeAssembly.fromJSON(item));
         });
     },
-    getPartsFromAssembly(documentId, workspaceID, assemblyId) {
+    getPartsFromAssembly(project) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const response = yield fetchFromOnshape(`assemblies/d/${documentId}/w/${workspaceID}/e/${assemblyId}/bom?indented=false&generateIfAbsent=true`);
+                const response = yield fetchFromOnshape(`assemblies/d/${project.onshape_id}/w/${project.default_workspace}/e/${project.assembly_onshape_id}/bom?indented=false&generateIfAbsent=true`);
                 const json = yield response.json();
                 //load existing parts
                 const parts = yield Part_1.Part.getPartsInDB();
@@ -60,6 +60,7 @@ exports.Onshape = {
                     const partAlreadyExists = partsWithThisNumber.length > 0;
                     const part = partsWithThisNumber.length > 0 ? partsWithThisNumber[0] : new Part_1.Part();
                     part.number = partNumber;
+                    part.project = project;
                     const materialObjet = headerIdToValue[headers.material];
                     if (materialObjet != null)
                         part.material = headerIdToValue[headers.material]["displayName"];
@@ -88,6 +89,12 @@ exports.Onshape = {
             name: headers.filter(e => e.name.toLowerCase() === "name")[0].id,
             material: headers.filter(e => e.name.toLowerCase() === "material")[0].id,
             quantity: headers.filter(e => e.name.toLowerCase() === "quantity")[0].id,
+        });
+    },
+    getThumbnailForElement(documentId, workspaceID, elementId) {
+        return fetchFromOnshape(`thumbnails/d/${documentId}/w/${workspaceID}/e/${elementId}`)
+            .then((response) => response.json()).then((json) => {
+            return this.parseThumbnailInfo(json.sizes);
         });
     },
     parseThumbnailInfo(sizes) {
