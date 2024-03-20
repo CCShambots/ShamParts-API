@@ -68,7 +68,6 @@ export var Onshape = {
 
                 part.project = project;
 
-
                 const materialObjet = headerIdToValue[headers.material];
 
                 if(materialObjet != null) part.material = headerIdToValue[headers.material]["displayName"];
@@ -81,7 +80,7 @@ export var Onshape = {
 
                 if(!partAlreadyExists) {
                     part.quantityInStock = 0
-                    part.quantityRequested = 0
+                    part.quantityRequested = part.quantityNeeded;
                     part.thumbnail = "unloaded"
                 }
 
@@ -101,10 +100,27 @@ export var Onshape = {
             }
         )
     },
-    getThumbnailForElement(documentId:string, workspaceID:string, elementId:string):Promise<string> {
-        return fetchFromOnshape(`thumbnails/d/${documentId}/w/${workspaceID}/e/${elementId}`)
+    getThumbnailForElement(documentId:string, workspaceID:string, elementId:string, part:Part):Promise<string> {
+        return fetchFromOnshape(`parts/d/${documentId}/w/${workspaceID}/e/${elementId}?withThumbnails=true`)
             .then((response) => response.json()).then((json) => {
-                return this.parseThumbnailInfo(json.sizes)
+
+                try {
+                    var thisEle;
+                    try {
+                        thisEle = json.filter(e => e.name  === part.number)[0]
+                    } catch(e) {
+                        //means there was only one part in the element presumably
+                        thisEle = json
+                    }
+
+                    console.log(thisEle)
+                    return this.parseThumbnailInfo(thisEle["thumbnailInfo"].sizes)
+                } catch (e) {
+                    console.log(e)
+                    console.log(json)
+                    console.log(`${documentId},${workspaceID},${elementId}`)
+                    return "fail"
+                }
         });
 
     },

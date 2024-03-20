@@ -72,7 +72,7 @@ exports.Onshape = {
                     part.onshape_id = item["itemSource"]["elementId"];
                     if (!partAlreadyExists) {
                         part.quantityInStock = 0;
-                        part.quantityRequested = 0;
+                        part.quantityRequested = part.quantityNeeded;
                         part.thumbnail = "unloaded";
                     }
                     return part;
@@ -91,10 +91,26 @@ exports.Onshape = {
             quantity: headers.filter(e => e.name.toLowerCase() === "quantity")[0].id,
         });
     },
-    getThumbnailForElement(documentId, workspaceID, elementId) {
-        return fetchFromOnshape(`thumbnails/d/${documentId}/w/${workspaceID}/e/${elementId}`)
+    getThumbnailForElement(documentId, workspaceID, elementId, part) {
+        return fetchFromOnshape(`parts/d/${documentId}/w/${workspaceID}/e/${elementId}?withThumbnails=true`)
             .then((response) => response.json()).then((json) => {
-            return this.parseThumbnailInfo(json.sizes);
+            try {
+                var thisEle;
+                try {
+                    thisEle = json.filter(e => e.name === part.number)[0];
+                }
+                catch (e) {
+                    //means there was only one part in the elmenet presumably
+                    thisEle = json;
+                }
+                console.log(thisEle);
+                return this.parseThumbnailInfo(thisEle["thumbnailInfo"].sizes);
+            }
+            catch (e) {
+                console.log(e);
+                console.log(json);
+                return "fail";
+            }
         });
     },
     parseThumbnailInfo(sizes) {

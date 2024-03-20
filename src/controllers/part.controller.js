@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.loadPartThumbnail = void 0;
+exports.fulfillRequest = exports.requestAdditional = exports.reportBreakage = exports.loadPartThumbnail = void 0;
 const data_source_1 = require("../data-source");
 const Part_1 = require("../entity/Part");
 const Onshape_1 = require("../util/Onshape");
@@ -21,10 +21,56 @@ const loadPartThumbnail = (req, res) => __awaiter(void 0, void 0, void 0, functi
         .where("part.id = :id", { id: id })
         .getOne();
     //Load the thumbnail from Onshape
-    loaded.thumbnail = yield Onshape_1.Onshape.getThumbnailForElement(loaded.project.onshape_id, loaded.project.default_workspace, loaded.onshape_id);
+    const thumbnail = yield Onshape_1.Onshape.getThumbnailForElement(loaded.project.onshape_id, loaded.project.default_workspace, loaded.onshape_id, loaded);
+    if (thumbnail === "fail") {
+        return res.status(500).send("Failed to load thumbnail");
+    }
+    loaded.thumbnail = thumbnail;
     yield data_source_1.AppDataSource.manager.save(loaded);
     //Send the thumbnail to the client
     res.status(200).send(loaded.thumbnail);
 });
 exports.loadPartThumbnail = loadPartThumbnail;
+const reportBreakage = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const quantity = req.query.quantity ? parseInt(req.query.quantity) : 1;
+    const id = req.params.id;
+    //Load the part object from the database with this id
+    const loaded = yield data_source_1.AppDataSource.createQueryBuilder(Part_1.Part, "part")
+        .innerJoinAndSelect("part.project", "project")
+        .where("part.id = :id", { id: id })
+        .getOne();
+    if (loaded.quantityInStock < quantity)
+        return res.status(400).send("You broke more parts than you have?");
+    loaded.quantityInStock -= quantity;
+    yield data_source_1.AppDataSource.manager.save(loaded);
+    res.status(200).send(loaded);
+});
+exports.reportBreakage = reportBreakage;
+const requestAdditional = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const quantity = req.query.quantity ? parseInt(req.query.quantity) : 1;
+    const id = req.params.id;
+    //Load the part object from the database with this id
+    const loaded = yield data_source_1.AppDataSource.createQueryBuilder(Part_1.Part, "part")
+        .innerJoinAndSelect("part.project", "project")
+        .where("part.id = :id", { id: id })
+        .getOne();
+    loaded.quantityRequested += quantity;
+    yield data_source_1.AppDataSource.manager.save(loaded);
+    res.status(200).send(loaded);
+});
+exports.requestAdditional = requestAdditional;
+const fulfillRequest = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const quantity = req.query.quantity ? parseInt(req.query.quantity) : 1;
+    const id = req.params.id;
+    //Load the part object from the database with this id
+    const loaded = yield data_source_1.AppDataSource.createQueryBuilder(Part_1.Part, "part")
+        .innerJoinAndSelect("part.project", "project")
+        .where("part.id = :id", { id: id })
+        .getOne();
+    loaded.quantityInStock += quantity;
+    loaded.quantityRequested -= Math.max(quantity, 0);
+    yield data_source_1.AppDataSource.manager.save(loaded);
+    res.status(200).send(loaded);
+});
+exports.fulfillRequest = fulfillRequest;
 //# sourceMappingURL=part.controller.js.map
