@@ -33,21 +33,6 @@ export class Part  {
 
     @Column()
     quantityRequested: number
-
-    toJSON() {
-        return {
-            id: this.id,
-            number: this.number,
-            material: this.material,
-            thumbnail: this.thumbnail,
-            onshape_id: this.onshape_id,
-            quantityNeeded: this.quantityNeeded,
-            quantityInStock: this.quantityInStock,
-            quantityRequested: this.quantityRequested
-        }
-
-    }
-
     static async getPartsInDB()  {
         return await AppDataSource.createQueryBuilder(Part, "part")
             .getMany();

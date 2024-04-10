@@ -3,6 +3,7 @@ import {AppDataSource} from "../data-source";
 import {Part} from "../entity/Part";
 import {Onshape} from "../util/Onshape";
 
+//TODO: Fix bug with loading images that aren't saved in that document
 export const loadPartThumbnail = async (req:Request, res:Response) => {
     const id = req.params.id;
 

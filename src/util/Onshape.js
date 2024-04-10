@@ -51,9 +51,6 @@ exports.Onshape = {
                 const parts = yield Part_1.Part.getPartsInDB();
                 const headers = exports.Onshape.getHeaders(json);
                 return yield json.rows.map((item) => {
-                    // console.log(item)
-                    // console.log(headers.material)
-                    // console.log(item["headerIdToValue"][headers.material])
                     const headerIdToValue = item["headerIdToValue"];
                     const partNumber = headerIdToValue[headers.name];
                     const partsWithThisNumber = parts.filter(e => e.number === partNumber);
@@ -100,7 +97,7 @@ exports.Onshape = {
                     thisEle = json.filter(e => e.name === part.number)[0];
                 }
                 catch (e) {
-                    //means there was only one part in the elmenet presumably
+                    //means there was only one part in the element presumably
                     thisEle = json;
                 }
                 console.log(thisEle);
@@ -109,6 +106,7 @@ exports.Onshape = {
             catch (e) {
                 console.log(e);
                 console.log(json);
+                console.log(`${documentId},${workspaceID},${elementId}`);
                 return "fail";
             }
         });

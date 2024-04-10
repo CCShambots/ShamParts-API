@@ -52,10 +52,6 @@ export var Onshape = {
             const headers = Onshape.getHeaders(json);
             return await json.rows.map((item: any) => {
 
-                // console.log(item)
-                // console.log(headers.material)
-                // console.log(item["headerIdToValue"][headers.material])
-
                 const headerIdToValue = item["headerIdToValue"];
 
                 const partNumber = headerIdToValue[headers.name];

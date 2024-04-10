@@ -25,18 +25,6 @@ const data_source_1 = require("../data-source");
 const Project_1 = require("./Project");
 const class_transformer_1 = require("class-transformer");
 let Part = Part_1 = class Part {
-    toJSON() {
-        return {
-            id: this.id,
-            number: this.number,
-            material: this.material,
-            thumbnail: this.thumbnail,
-            onshape_id: this.onshape_id,
-            quantityNeeded: this.quantityNeeded,
-            quantityInStock: this.quantityInStock,
-            quantityRequested: this.quantityRequested
-        };
-    }
     static getPartsInDB() {
         return __awaiter(this, void 0, void 0, function* () {
             return yield data_source_1.AppDataSource.createQueryBuilder(Part_1, "part")

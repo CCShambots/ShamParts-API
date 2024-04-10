@@ -13,6 +13,7 @@ exports.fulfillRequest = exports.requestAdditional = exports.reportBreakage = ex
 const data_source_1 = require("../data-source");
 const Part_1 = require("../entity/Part");
 const Onshape_1 = require("../util/Onshape");
+//TODO: Fix bug with loading images that aren't saved in that document
 const loadPartThumbnail = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const id = req.params.id;
     //Load the part object from the database with this id
