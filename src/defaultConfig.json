@@ -1,8 +1,7 @@
 {
   "onshape_auth_code": "",
   "onshape_team_id": "",
-  "port": 5432,
-  "username": "postgres",
-  "password": "",
-  "database": ""
+  "mj_api_key_public": "",
+  "mj_api_key_private": "",
+  "sender_email": ""
 }

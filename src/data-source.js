@@ -5,6 +5,7 @@ require("reflect-metadata");
 const typeorm_1 = require("typeorm");
 const Part_1 = require("./entity/Part");
 const Project_1 = require("./entity/Project");
+const User_1 = require("./entity/User");
 exports.AppDataSource = new typeorm_1.DataSource({
     type: "postgres",
     host: "localhost",
@@ -14,7 +15,7 @@ exports.AppDataSource = new typeorm_1.DataSource({
     database: "postgres",
     synchronize: true,
     logging: false,
-    entities: [Part_1.Part, Project_1.Project],
+    entities: [Part_1.Part, Project_1.Project, User_1.User],
     subscribers: [],
     migrations: [],
 });
