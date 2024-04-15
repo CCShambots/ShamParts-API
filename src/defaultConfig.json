@@ -3,5 +3,6 @@
   "onshape_team_id": "",
   "mj_api_key_public": "",
   "mj_api_key_private": "",
-  "sender_email": ""
+  "sender_email": "",
+  "admin_user": ""
 }

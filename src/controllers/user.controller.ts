@@ -1,9 +1,9 @@
 import {AppDataSource} from "../data-source";
 import {User} from "../entity/User";
 import {Request, response, Response} from "express";
-import Mailjet from "node-mailjet";
 import {sendVerificationEmail} from "../util/Mailjet";
 import {classToPlain, instanceToPlain} from "class-transformer";
+import configJson from "../../config.json";
 
 
 export const createUser = async (req:Request, res:Response) => {
@@ -13,16 +13,17 @@ export const createUser = async (req:Request, res:Response) => {
       .createQueryBuilder(User, "user")
       .getMany();
 
-    // if(users.some(user => user.email === queryParams.email)) {
-    //     return res.status(400).send("User already exists");
-    // }
+    if(users.some(user => user.email === queryParams.email)) {
+        return res.status(400).send("User already exists");
+    }
 
     let user = new User();
 
     user.email = queryParams.email as string;
     user.name = queryParams.name as string;
     user.verified = false;
-    user.roles = [];
+    if(configJson.admin_user === user.email) user.roles = ['admin'];
+    else user.roles = [];
     //Generate random string for verification
     user.randomToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
     user.passwordHash = stringToHash(queryParams.password as string);
@@ -98,4 +99,17 @@ export const getUsers = async (req:Request, res:Response) => {
     const plainUsers = users.map(e => instanceToPlain(e))
 
     return res.status(200).send(plainUsers);
+}
+
+export const getUser = async  (req:Request, res:Response) => {
+    const user = await AppDataSource.manager
+        .createQueryBuilder(User, "user")
+        .where("user.email = :email", {email: req.query.email})
+        .getOne();
+
+    if(!user) {
+        return res.status(404).send("User not found");
+    }
+
+    return res.status(200).send(instanceToPlain(user));
 }

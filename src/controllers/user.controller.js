@@ -8,25 +8,32 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getUsers = exports.cancelUser = exports.verifyUser = exports.createUser = void 0;
 const data_source_1 = require("../data-source");
 const User_1 = require("../entity/User");
 const Mailjet_1 = require("../util/Mailjet");
 const class_transformer_1 = require("class-transformer");
+const config_json_1 = __importDefault(require("../../config.json"));
 const createUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const queryParams = req.query;
     const users = yield data_source_1.AppDataSource.manager
         .createQueryBuilder(User_1.User, "user")
         .getMany();
-    // if(users.some(user => user.email === queryParams.email)) {
-    //     return res.status(400).send("User already exists");
-    // }
+    if (users.some(user => user.email === queryParams.email)) {
+        return res.status(400).send("User already exists");
+    }
     let user = new User_1.User();
     user.email = queryParams.email;
     user.name = queryParams.name;
     user.verified = false;
-    user.roles = [];
+    if (config_json_1.default.admin_user === user.email)
+        user.roles = ['admin'];
+    else
+        user.roles = [];
     //Generate random string for verification
     user.randomToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
     user.passwordHash = stringToHash(queryParams.password);
