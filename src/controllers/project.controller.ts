@@ -2,6 +2,7 @@ import {Project} from "../entity/Project";
 import {Request, Response} from "express";
 import {AppDataSource} from "../data-source";
 import {Onshape} from "../util/Onshape";
+import {User} from "../entity/User";
 
 
 export const createProject = async (req:Request, res:Response) => {
@@ -38,45 +39,41 @@ export const createProject = async (req:Request, res:Response) => {
 }
 
 export const getProjects = async (req:Request, res:Response) => {
-    const projects = await AppDataSource.manager
-      .createQueryBuilder(Project, "project")
-      .getMany();
+    const user = await User.getUserFromRandomToken(req.headers.token as string)
+
+    if(!user) {
+        return res.status(404).send("User not found");
+    }
+
+    let projects = user.projects;
+
+    //If the user is an admin, return all projects
+    if(user.roles.includes('admin')) {
+        projects = await AppDataSource.manager
+          .createQueryBuilder(Project, "project")
+          .getMany();
+    }
 
     return res.send(projects.map(e => e.name));
 }
 
 export const getProject = async (req:Request, res:Response) => {
-
     //TODO: Make loading of individual parts work
 
-    const project = await AppDataSource.manager
-      .createQueryBuilder(Project, "project")
-        .innerJoinAndSelect("project.parts", "part")
-        .where("project.name = :name", {name: req.params.name})
-        .getOne();
+    //Check if user is involved in this project
+    const user = await User.getUserFromRandomToken(req.headers.token as string)
 
-    if(project === null) return res.status(404).send("Project not found");
+    if(!user) {
+        return res.status(404).send("User not found");
+    }
+
+    const project = user.projects.filter(e => e.name === req.params.name)[0];
+
+    if(!project) {
+        return res.status(404).send("Project not found");
+    }
 
     project.individual_parts = [];
     
     return res.send(project);
-}
-
-export const testMultiResult = async (req:Request, res:Response) => {
-
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
-
-    //Use req.write to send a message every two seconds
-    let i = 0;
-    const interval = setInterval(() => {
-        res.write(`Message ${i}\n`);
-        i++;
-        if(i === 5) {
-            clearInterval(interval);
-            res.end();
-        }
-    }, 2000);
-
 }

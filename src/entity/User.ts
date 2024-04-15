@@ -1,5 +1,7 @@
-import {Column, Entity, PrimaryGeneratedColumn} from "typeorm";
+import {Column, Entity, ManyToMany, PrimaryGeneratedColumn} from "typeorm";
 import {Exclude} from "class-transformer";
+import {AppDataSource} from "../data-source";
+import {Project} from "./Project";
 
 @Entity()
 export class User {
@@ -12,11 +14,12 @@ export class User {
     @Column()
     email: string
 
+    @Exclude()
     @Column()
     passwordHash: string
 
-    @Column()
     @Exclude()
+    @Column()
     randomToken: string
 
     @Column("text", {array: true})
@@ -24,4 +27,22 @@ export class User {
 
     @Column()
     verified: boolean
+
+    @Exclude()
+    @ManyToMany(type => Project, project => project.users)
+    projects: Project[]
+
+    static async getUserFromEmail(email:string) {
+        return await AppDataSource.manager
+            .createQueryBuilder(User, "user")
+            .where("user.email = :email", {email: email})
+            .getOne();
+    }
+
+    static async getUserFromRandomToken(token:string) {
+        return await AppDataSource.manager
+            .createQueryBuilder(User, "user")
+            .where("user.randomToken = :token", {token: token})
+            .getOne();
+    }
 }

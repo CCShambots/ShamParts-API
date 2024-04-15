@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sendVerificationEmail = void 0;
+exports.sendPasswordResetEmail = exports.sendVerificationEmail = void 0;
 const config_json_1 = __importDefault(require("../../config.json"));
 const Mailjet = require('node-mailjet');
 const mailjet = Mailjet.apiConnect(config_json_1.default.mj_api_key_public, config_json_1.default.mj_api_key_private, {
@@ -36,16 +36,17 @@ function sendVerificationEmail(email, name, verificationToken) {
                     ],
                     Variables: {
                         "name": name,
-                        "verificationToken": verificationToken
+                        "verificationToken": verificationToken,
+                        "ip": config_json_1.default.ip_address
                     },
                     TemplateLanguage: true,
                     Subject: 'Verify Your ShamParts Account',
                     HTMLPart: '' +
                         '<h3>{{var:name}}, thanks for signing up for ShamParts!</h3><br />' +
                         'Click the below to verify your account: ' +
-                        '<a href="http://localhost:3000/user/verify?token={{var:verificationToken}}" target="_blank">Verify Account</a><br/>' +
+                        '<a href="{{var:ip}}user/verify?token={{var:verificationToken}}" target="_blank">Verify Account</a><br/>' +
                         'If this wasn\'t you, please click this link below to cancel the account\'s creation: ' +
-                        '<a href="http://localhost:3000/user/cancel?token={{var:verificationToken}}" target="_blank">Cancel Account Creation</a><br/>',
+                        '<a href="{{var:ip}}user/cancel?token={{var:verificationToken}}" target="_blank">Cancel Account Creation</a><br/>',
                     TextPart: '{{var:name}}, thanks for signing up for ShamParts! Click the link below to verify your account: http://localhost:3000/user/verify?token={{var:verificationToken}}',
                 },
             ],
@@ -59,4 +60,43 @@ function sendVerificationEmail(email, name, verificationToken) {
     });
 }
 exports.sendVerificationEmail = sendVerificationEmail;
+function sendPasswordResetEmail(email, name, verificationToken) {
+    return __awaiter(this, void 0, void 0, function* () {
+        console.log(`Sending password reset email to: ${email}`);
+        const data = {
+            Messages: [
+                {
+                    From: {
+                        Email: config_json_1.default.sender_email,
+                        Name: "ShamParts"
+                    },
+                    To: [
+                        {
+                            Email: email,
+                        },
+                    ],
+                    Variables: {
+                        "name": name,
+                        "verificationToken": verificationToken,
+                        "ip": config_json_1.default.ip_address
+                    },
+                    TemplateLanguage: true,
+                    Subject: 'Reset Your ShamParts Password',
+                    HTMLPart: '' +
+                        '<h3>{{var:name}}, click the link below to reset your Shamparts password!</h3><br />' +
+                        'Click the below to reset your password: ' +
+                        '<a href="{{var:ip}}user/resetPassword?token={{var:verificationToken}}" target="_blank">Reset Password</a><br/>',
+                    TextPart: '{{var:name}}, thanks for signing up for ShamParts! Click the link below to verify your account: http://localhost:3000/user/verify?token={{var:verificationToken}}',
+                },
+            ],
+        };
+        const result = yield mailjet
+            .post('send', { version: 'v3.1' })
+            .request(data);
+        const { Status } = result.body.Messages[0];
+        console.log(`Email status: ${Status}`);
+        return Status;
+    });
+}
+exports.sendPasswordResetEmail = sendPasswordResetEmail;
 //# sourceMappingURL=Mailjet.js.map

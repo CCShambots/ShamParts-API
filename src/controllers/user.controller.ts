@@ -4,7 +4,28 @@ import {Request, response, Response} from "express";
 import {sendVerificationEmail} from "../util/Mailjet";
 import {classToPlain, instanceToPlain} from "class-transformer";
 import configJson from "../../config.json";
+import path from 'path';
 
+
+function stringToHash(string) {
+
+    let hash = 0;
+
+    if (string.length == 0) return hash.toString();
+
+    for (let i = 0; i < string.length; i++) {
+        let char = string.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash;
+    }
+
+    return hash.toString();
+}
+
+function generateRandomToken() {
+    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+
+}
 
 export const createUser = async (req:Request, res:Response) => {
     const queryParams = req.query
@@ -25,7 +46,13 @@ export const createUser = async (req:Request, res:Response) => {
     if(configJson.admin_user === user.email) user.roles = ['admin'];
     else user.roles = [];
     //Generate random string for verification
-    user.randomToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    user.randomToken = generateRandomToken();
+
+    //Check if this random token already exists on another user and re-roll if necessary
+    while(users.some(e => e.randomToken === user.randomToken)) {
+        user.randomToken = generateRandomToken();
+    }
+
     user.passwordHash = stringToHash(queryParams.password as string);
 
     //Send verification email to the user
@@ -40,26 +67,8 @@ export const createUser = async (req:Request, res:Response) => {
     return res.status(200).send(userPlain);
 }
 
-function stringToHash(string) {
-
-    let hash = 0;
-
-    if (string.length == 0) return hash.toString();
-
-    for (let i = 0; i < string.length; i++) {
-        let char = string.charCodeAt(i);
-        hash = ((hash << 5) - hash) + char;
-        hash = hash & hash;
-    }
-
-    return hash.toString();
-}
-
 export const verifyUser = async (req:Request, res:Response) => {
-    const user = await AppDataSource.manager
-        .createQueryBuilder(User, "user")
-        .where("user.randomToken = :token", {token: req.query.token})
-        .getOne();
+    const user = await User.getUserFromRandomToken(req.query.token as string)
 
     if(!user) {
         //Return an error message (could not find user to verify)
@@ -74,11 +83,20 @@ export const verifyUser = async (req:Request, res:Response) => {
     return res.status(200).send("User verified");
 }
 
+export const authenticateUser = async (req:Request, res:Response) => {
+    const user = await User.getUserFromEmail(req.query.email as string)
+
+    if(!user) {
+        return res.status(404).send("User not found");
+    }
+
+    if(user.passwordHash !== stringToHash(req.query.password)) return res.status(403).send("Invalid token");
+
+    return res.status(200).send(user);
+}
+
 export const cancelUser = async (req:Request, res:Response) => {
-    const user = await AppDataSource.manager
-        .createQueryBuilder(User, "user")
-        .where("user.randomToken= :token", {token: req.query.token})
-        .getOne();
+    const user = await User.getUserFromRandomToken(req.query.token as string)
 
     if(!user) {
         //Return an error message (could not find user to verify)
@@ -102,14 +120,65 @@ export const getUsers = async (req:Request, res:Response) => {
 }
 
 export const getUser = async  (req:Request, res:Response) => {
-    const user = await AppDataSource.manager
-        .createQueryBuilder(User, "user")
-        .where("user.email = :email", {email: req.query.email})
-        .getOne();
+    const user = await User.getUserFromEmail(req.query.email as string)
 
     if(!user) {
         return res.status(404).send("User not found");
     }
 
     return res.status(200).send(instanceToPlain(user));
+}
+
+export const forgotPassword = async (req:Request, res:Response) => {
+    const user = await User.getUserFromEmail(req.query.email as string)
+
+    if(!user) {
+        return res.status(404).send("User not found");
+    }
+
+    user.randomToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+
+    await AppDataSource.manager.save(user);
+
+    let responseStatus = await sendVerificationEmail(user.email, user.name, user.randomToken)
+
+    console.log(responseStatus);
+
+    return res.status(200).send("Email sent");
+}
+
+export const resetPasswordPage = async (req:Request, res:Response) => {
+
+    res.sendFile(path.join(__dirname, '/ResetPassword.html'));
+}
+
+export const resetPassword = async (req:Request, res:Response) => {
+    console.log(req.query)
+    console.log(req.query.token)
+
+    const user = await User.getUserFromRandomToken(req.query.token as string)
+
+    if(!user) {
+        return res.status(404).send("User not found");
+    }
+
+    user.passwordHash = stringToHash(req.query.password);
+
+    await AppDataSource.manager.save(user);
+
+    return res.status(200).send("Password reset");
+}
+
+export const deleteUser = async (req:Request, res:Response) => {
+    const user = await User.getUserFromEmail(req.query.email as string)
+
+    if(!user) {
+        return res.status(404).send("User not found");
+    }
+
+    if(user.passwordHash !== stringToHash(req.query.password)) return res.status(403).send("Invalid token");
+
+    await AppDataSource.manager.remove(user);
+
+    return res.status(200).send("User deleted");
 }

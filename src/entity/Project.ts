@@ -1,5 +1,6 @@
-import {Column, Entity, OneToMany, PrimaryGeneratedColumn} from "typeorm";
+import {Column, Entity, ManyToMany, OneToMany, PrimaryGeneratedColumn} from "typeorm";
 import {Part} from "./Part";
+import {User} from "./User";
 
 @Entity()
 export class Project {
@@ -27,4 +28,6 @@ export class Project {
     @OneToMany((type) => Part, part => part.project, {cascade: true})
     individual_parts: Part[]
 
+    @ManyToMany(type => User, user => user.projects)
+    users: User[]
 }

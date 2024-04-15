@@ -12,12 +12,27 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getUsers = exports.cancelUser = exports.verifyUser = exports.createUser = void 0;
+exports.deleteUser = exports.resetPassword = exports.resetPasswordPage = exports.forgotPassword = exports.getUser = exports.getUsers = exports.cancelUser = exports.authenticateUser = exports.verifyUser = exports.createUser = void 0;
 const data_source_1 = require("../data-source");
 const User_1 = require("../entity/User");
 const Mailjet_1 = require("../util/Mailjet");
 const class_transformer_1 = require("class-transformer");
 const config_json_1 = __importDefault(require("../../config.json"));
+const path_1 = __importDefault(require("path"));
+function stringToHash(string) {
+    let hash = 0;
+    if (string.length == 0)
+        return hash.toString();
+    for (let i = 0; i < string.length; i++) {
+        let char = string.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash;
+    }
+    return hash.toString();
+}
+function generateRandomToken() {
+    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+}
 const createUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const queryParams = req.query;
     const users = yield data_source_1.AppDataSource.manager
@@ -35,7 +50,11 @@ const createUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     else
         user.roles = [];
     //Generate random string for verification
-    user.randomToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    user.randomToken = generateRandomToken();
+    //Check if this random token already exists on another user and re-roll if necessary
+    while (users.some(e => e.randomToken === user.randomToken)) {
+        user.randomToken = generateRandomToken();
+    }
     user.passwordHash = stringToHash(queryParams.password);
     //Send verification email to the user
     let responseStatus = yield (0, Mailjet_1.sendVerificationEmail)(user.email, user.name, user.randomToken);
@@ -45,22 +64,8 @@ const createUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     return res.status(200).send(userPlain);
 });
 exports.createUser = createUser;
-function stringToHash(string) {
-    let hash = 0;
-    if (string.length == 0)
-        return hash.toString();
-    for (let i = 0; i < string.length; i++) {
-        let char = string.charCodeAt(i);
-        hash = ((hash << 5) - hash) + char;
-        hash = hash & hash;
-    }
-    return hash.toString();
-}
 const verifyUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const user = yield data_source_1.AppDataSource.manager
-        .createQueryBuilder(User_1.User, "user")
-        .where("user.randomToken = :token", { token: req.query.token })
-        .getOne();
+    const user = yield User_1.User.getUserFromRandomToken(req.query.token);
     if (!user) {
         //Return an error message (could not find user to verify)
         return res.status(404).send("User not found");
@@ -71,11 +76,18 @@ const verifyUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     return res.status(200).send("User verified");
 });
 exports.verifyUser = verifyUser;
+const authenticateUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = yield User_1.User.getUserFromEmail(req.query.email);
+    if (!user) {
+        return res.status(404).send("User not found");
+    }
+    if (user.passwordHash !== stringToHash(req.query.password))
+        return res.status(403).send("Invalid token");
+    return res.status(200).send(user);
+});
+exports.authenticateUser = authenticateUser;
 const cancelUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const user = yield data_source_1.AppDataSource.manager
-        .createQueryBuilder(User_1.User, "user")
-        .where("user.randomToken= :token", { token: req.query.token })
-        .getOne();
+    const user = yield User_1.User.getUserFromRandomToken(req.query.token);
     if (!user) {
         //Return an error message (could not find user to verify)
         return res.status(404).send("User not found");
@@ -93,4 +105,51 @@ const getUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     return res.status(200).send(plainUsers);
 });
 exports.getUsers = getUsers;
+const getUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = yield User_1.User.getUserFromEmail(req.query.email);
+    if (!user) {
+        return res.status(404).send("User not found");
+    }
+    return res.status(200).send((0, class_transformer_1.instanceToPlain)(user));
+});
+exports.getUser = getUser;
+const forgotPassword = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = yield User_1.User.getUserFromEmail(req.query.email);
+    if (!user) {
+        return res.status(404).send("User not found");
+    }
+    user.randomToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    yield data_source_1.AppDataSource.manager.save(user);
+    let responseStatus = yield (0, Mailjet_1.sendVerificationEmail)(user.email, user.name, user.randomToken);
+    console.log(responseStatus);
+    return res.status(200).send("Email sent");
+});
+exports.forgotPassword = forgotPassword;
+const resetPasswordPage = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    res.sendFile(path_1.default.join(__dirname, '/ResetPassword.html'));
+});
+exports.resetPasswordPage = resetPasswordPage;
+const resetPassword = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log(req.query);
+    console.log(req.query.token);
+    const user = yield User_1.User.getUserFromRandomToken(req.query.token);
+    if (!user) {
+        return res.status(404).send("User not found");
+    }
+    user.passwordHash = stringToHash(req.query.password);
+    yield data_source_1.AppDataSource.manager.save(user);
+    return res.status(200).send("Password reset");
+});
+exports.resetPassword = resetPassword;
+const deleteUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = yield User_1.User.getUserFromEmail(req.query.email);
+    if (!user) {
+        return res.status(404).send("User not found");
+    }
+    if (user.passwordHash !== stringToHash(req.query.password))
+        return res.status(403).send("Invalid token");
+    yield data_source_1.AppDataSource.manager.remove(user);
+    return res.status(200).send("User deleted");
+});
+exports.deleteUser = deleteUser;
 //# sourceMappingURL=user.controller.js.map
