@@ -12,6 +12,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Project = void 0;
 const typeorm_1 = require("typeorm");
 const Part_1 = require("./Part");
+const User_1 = require("./User");
+const typeorm_2 = require("typeorm");
 let Project = class Project {
 };
 __decorate([
@@ -46,6 +48,11 @@ __decorate([
     (0, typeorm_1.OneToMany)((type) => Part_1.Part, part => part.project, { cascade: true }),
     __metadata("design:type", Array)
 ], Project.prototype, "individual_parts", void 0);
+__decorate([
+    (0, typeorm_2.JoinTable)(),
+    (0, typeorm_1.ManyToMany)(type => User_1.User),
+    __metadata("design:type", Array)
+], Project.prototype, "users", void 0);
 Project = __decorate([
     (0, typeorm_1.Entity)()
 ], Project);

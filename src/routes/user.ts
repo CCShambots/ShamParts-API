@@ -9,13 +9,14 @@ import {
     resetPassword,
     resetPasswordPage,
     authenticateUser,
-    verifyUser
+    verifyUser, getUserFromToken
 } from "../controllers/user.controller";
 
 
 const router = express.Router();
 
 router.get("/", getUser)
+router.get("/fromToken", getUserFromToken)
 router.post("/create", createUser)
 router.get("/verify", verifyUser)
 router.get("/authenticate", authenticateUser)

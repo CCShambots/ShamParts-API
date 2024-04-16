@@ -7,6 +7,7 @@ const express_1 = __importDefault(require("express"));
 const user_controller_1 = require("../controllers/user.controller");
 const router = express_1.default.Router();
 router.get("/", user_controller_1.getUser);
+router.get("/fromToken", user_controller_1.getUserFromToken);
 router.post("/create", user_controller_1.createUser);
 router.get("/verify", user_controller_1.verifyUser);
 router.get("/authenticate", user_controller_1.authenticateUser);

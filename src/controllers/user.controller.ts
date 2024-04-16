@@ -1,7 +1,7 @@
 import {AppDataSource} from "../data-source";
 import {User} from "../entity/User";
 import {Request, response, Response} from "express";
-import {sendVerificationEmail} from "../util/Mailjet";
+import {sendPasswordResetEmail, sendVerificationEmail} from "../util/Mailjet";
 import {classToPlain, instanceToPlain} from "class-transformer";
 import configJson from "../../config.json";
 import path from 'path';
@@ -28,6 +28,9 @@ function generateRandomToken() {
 }
 
 export const createUser = async (req:Request, res:Response) => {
+
+    if(!req.query.email || !req.query.password || !req.query.name) return res.status(400).send("Missing parameters");
+
     const queryParams = req.query
 
     const users = await AppDataSource.manager
@@ -92,6 +95,8 @@ export const authenticateUser = async (req:Request, res:Response) => {
 
     if(user.passwordHash !== stringToHash(req.query.password)) return res.status(403).send("Invalid token");
 
+    if(!user.verified) return res.status(403).send("User not verified");
+
     return res.status(200).send(user);
 }
 
@@ -129,6 +134,16 @@ export const getUser = async  (req:Request, res:Response) => {
     return res.status(200).send(instanceToPlain(user));
 }
 
+export const getUserFromToken = async  (req:Request, res:Response) => {
+    const user = await User.getUserFromRandomToken(req.query.token as string)
+
+    if(!user) {
+        return res.status(404).send("User not found");
+    }
+
+    return res.status(200).send(instanceToPlain(user));
+}
+
 export const forgotPassword = async (req:Request, res:Response) => {
     const user = await User.getUserFromEmail(req.query.email as string)
 
@@ -140,7 +155,7 @@ export const forgotPassword = async (req:Request, res:Response) => {
 
     await AppDataSource.manager.save(user);
 
-    let responseStatus = await sendVerificationEmail(user.email, user.name, user.randomToken)
+    let responseStatus = await sendPasswordResetEmail(user.email, user.name, user.randomToken)
 
     console.log(responseStatus);
 
@@ -176,7 +191,7 @@ export const deleteUser = async (req:Request, res:Response) => {
         return res.status(404).send("User not found");
     }
 
-    if(user.passwordHash !== stringToHash(req.query.password)) return res.status(403).send("Invalid token");
+    if(user.passwordHash !== stringToHash(req.query.password)) return res.status(403).send("Incorrect Password");
 
     await AppDataSource.manager.remove(user);
 

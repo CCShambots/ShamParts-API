@@ -1,6 +1,7 @@
 import {Column, Entity, ManyToMany, OneToMany, PrimaryGeneratedColumn} from "typeorm";
 import {Part} from "./Part";
 import {User} from "./User";
+import {JoinTable} from "typeorm";
 
 @Entity()
 export class Project {
@@ -28,6 +29,7 @@ export class Project {
     @OneToMany((type) => Part, part => part.project, {cascade: true})
     individual_parts: Part[]
 
-    @ManyToMany(type => User, user => user.projects)
+    @JoinTable()
+    @ManyToMany(type => User)
     users: User[]
 }

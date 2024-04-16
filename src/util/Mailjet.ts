@@ -86,7 +86,7 @@ export async function sendPasswordResetEmail(email: string, name: string, verifi
                 HTMLPart: '' +
                     '<h3>{{var:name}}, click the link below to reset your Shamparts password!</h3><br />' +
                     'Click the below to reset your password: ' +
-                    '<a href="{{var:ip}}user/resetPassword?token={{var:verificationToken}}" target="_blank">Reset Password</a><br/>'
+                    '<a href="{{var:ip}}user/resetPasswordPage?token={{var:verificationToken}}" target="_blank">Reset Password</a><br/>'
                 ,
                 TextPart: '{{var:name}}, thanks for signing up for ShamParts! Click the link below to verify your account: http://localhost:3000/user/verify?token={{var:verificationToken}}',
             },
