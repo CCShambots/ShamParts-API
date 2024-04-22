@@ -3,7 +3,23 @@ import {AppDataSource} from "../data-source";
 import {Part} from "../entity/Part";
 import {Onshape} from "../util/Onshape";
 
-//TODO: Fix bug with loading images that aren't saved in that document  
+//TODO: Fix bug with loading images that aren't saved in that document
+
+export const getPart = async (req:Request, res:Response) => {
+
+    const id = req.params.id;
+
+    //Load the part object from the database with this id
+    const loaded = await AppDataSource.createQueryBuilder(Part, "part")
+        .innerJoinAndSelect("part.project", "project")
+        .where("part.id = :id", {id: id})
+        .getOne();
+
+    //Send the part object to the client
+    res.status(200).send(loaded);
+}
+
+
 export const loadPartThumbnail = async (req:Request, res:Response) => {
     const id = req.params.id;
 

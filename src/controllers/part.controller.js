@@ -9,11 +9,22 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.fulfillRequest = exports.requestAdditional = exports.reportBreakage = exports.loadPartThumbnail = void 0;
+exports.fulfillRequest = exports.requestAdditional = exports.reportBreakage = exports.loadPartThumbnail = exports.getPart = void 0;
 const data_source_1 = require("../data-source");
 const Part_1 = require("../entity/Part");
 const Onshape_1 = require("../util/Onshape");
-//TODO: Fix bug with loading images that aren't saved in that document  
+//TODO: Fix bug with loading images that aren't saved in that document
+const getPart = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const id = req.params.id;
+    //Load the part object from the database with this id
+    const loaded = yield data_source_1.AppDataSource.createQueryBuilder(Part_1.Part, "part")
+        .innerJoinAndSelect("part.project", "project")
+        .where("part.id = :id", { id: id })
+        .getOne();
+    //Send the part object to the client
+    res.status(200).send(loaded);
+});
+exports.getPart = getPart;
 const loadPartThumbnail = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const id = req.params.id;
     //Load the part object from the database with this id

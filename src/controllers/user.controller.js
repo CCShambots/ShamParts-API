@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteUser = exports.resetPassword = exports.resetPasswordPage = exports.forgotPassword = exports.changeUserName = exports.getUserFromToken = exports.getUser = exports.getUsers = exports.removeUserRole = exports.addUserRole = exports.cancelUser = exports.authenticateUser = exports.verifyUser = exports.createUser = exports.getRoles = void 0;
+exports.deleteUser = exports.resetPassword = exports.resetPasswordPage = exports.forgotPassword = exports.changeUserName = exports.getUserFromToken = exports.getUser = exports.getUsers = exports.removeUserRole = exports.setUserRoles = exports.addUserRole = exports.cancelUser = exports.authenticateUser = exports.verifyUser = exports.createUser = exports.getRoles = void 0;
 const data_source_1 = require("../data-source");
 const User_1 = require("../entity/User");
 const Mailjet_1 = require("../util/Mailjet");
@@ -122,6 +122,23 @@ const addUserRole = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     return res.status(200).send("Role added");
 });
 exports.addUserRole = addUserRole;
+const setUserRoles = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    //Authenticate the token
+    if (!req.headers.token)
+        return res.status(400).send("Missing token");
+    //Load the user from the token
+    let postingUser = yield User_1.User.getUserFromRandomToken(req.headers.token);
+    if (!postingUser.roles.includes("admin"))
+        return res.status(403).send("Unauthorized");
+    const user = yield User_1.User.getUserFromEmail(req.query.email);
+    if (!user) {
+        return res.status(404).send("User not found");
+    }
+    user.roles = req.query.roles.split(",");
+    yield data_source_1.AppDataSource.manager.save(user);
+    return res.status(200).send("Role added");
+});
+exports.setUserRoles = setUserRoles;
 const removeUserRole = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     //Authenticate the token
     if (!req.headers.token)

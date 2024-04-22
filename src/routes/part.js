@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const part_controller_1 = require("../controllers/part.controller");
 const router = express_1.default.Router();
+router.get('/:id', part_controller_1.getPart);
 router.get('/:id/loadImage', part_controller_1.loadPartThumbnail);
 router.get('/:id/break', part_controller_1.reportBreakage);
 router.get('/:id/request', part_controller_1.requestAdditional);

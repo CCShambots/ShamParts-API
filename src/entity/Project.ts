@@ -2,6 +2,7 @@ import {Column, Entity, ManyToMany, OneToMany, PrimaryGeneratedColumn} from "typ
 import {Part} from "./Part";
 import {User} from "./User";
 import {JoinTable} from "typeorm";
+import {Compound} from "./Compound";
 
 @Entity()
 export class Project {
@@ -32,4 +33,7 @@ export class Project {
     @JoinTable()
     @ManyToMany(type => User)
     users: User[]
+
+    @OneToMany((type) => Compound, compound => compound.project, {cascade: true})
+    compounds: Compound[]
 }

@@ -1,7 +1,8 @@
-import {Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn} from "typeorm";
+import {Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn} from "typeorm";
 import {AppDataSource} from "../data-source";
 import {Project} from "./Project";
 import {Exclude} from "class-transformer";
+import {LogEntry} from "./LogEntry";
 
 @Entity()
 export class Part  {
@@ -37,4 +38,7 @@ export class Part  {
         return await AppDataSource.createQueryBuilder(Part, "part")
             .getMany();
     }
+
+    @OneToMany((type) => LogEntry, entry => entry.part, {cascade: true})
+    logEntries: LogEntry[]
 }

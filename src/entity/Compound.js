@@ -9,57 +9,52 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Project = void 0;
+exports.Compound = void 0;
 const typeorm_1 = require("typeorm");
-const Part_1 = require("./Part");
-const User_1 = require("./User");
-const typeorm_2 = require("typeorm");
-const Compound_1 = require("./Compound");
-let Project = class Project {
+const Project_1 = require("./Project");
+const class_transformer_1 = require("class-transformer");
+const LogEntry_1 = require("./LogEntry");
+let Compound = class Compound {
 };
 __decorate([
     (0, typeorm_1.PrimaryGeneratedColumn)(),
     __metadata("design:type", Number)
-], Project.prototype, "id", void 0);
+], Compound.prototype, "id", void 0);
 __decorate([
     (0, typeorm_1.Column)(),
     __metadata("design:type", String)
-], Project.prototype, "name", void 0);
+], Compound.prototype, "name", void 0);
 __decorate([
     (0, typeorm_1.Column)(),
     __metadata("design:type", String)
-], Project.prototype, "onshape_id", void 0);
+], Compound.prototype, "material", void 0);
 __decorate([
     (0, typeorm_1.Column)(),
     __metadata("design:type", String)
-], Project.prototype, "default_workspace", void 0);
+], Compound.prototype, "thickness", void 0);
 __decorate([
     (0, typeorm_1.Column)(),
     __metadata("design:type", String)
-], Project.prototype, "assembly_name", void 0);
+], Compound.prototype, "thumbnailPath", void 0);
+__decorate([
+    (0, class_transformer_1.Exclude)(),
+    (0, typeorm_1.ManyToOne)(type => Project_1.Project, project => project.compounds),
+    __metadata("design:type", Project_1.Project)
+], Compound.prototype, "project", void 0);
 __decorate([
     (0, typeorm_1.Column)(),
-    __metadata("design:type", String)
-], Project.prototype, "assembly_onshape_id", void 0);
+    __metadata("design:type", Boolean)
+], Compound.prototype, "camDone", void 0);
 __decorate([
-    (0, typeorm_1.OneToMany)((type) => Part_1.Part, part => part.project, { cascade: true }),
+    (0, typeorm_1.Column)("text", { array: true }),
     __metadata("design:type", Array)
-], Project.prototype, "parts", void 0);
+], Compound.prototype, "camInstructions", void 0);
 __decorate([
-    (0, typeorm_1.OneToMany)((type) => Part_1.Part, part => part.project, { cascade: true }),
+    (0, typeorm_1.OneToMany)((type) => LogEntry_1.LogEntry, entry => entry.compound, { cascade: true }),
     __metadata("design:type", Array)
-], Project.prototype, "individual_parts", void 0);
-__decorate([
-    (0, typeorm_2.JoinTable)(),
-    (0, typeorm_1.ManyToMany)(type => User_1.User),
-    __metadata("design:type", Array)
-], Project.prototype, "users", void 0);
-__decorate([
-    (0, typeorm_1.OneToMany)((type) => Compound_1.Compound, compound => compound.project, { cascade: true }),
-    __metadata("design:type", Array)
-], Project.prototype, "compounds", void 0);
-Project = __decorate([
+], Compound.prototype, "logEntries", void 0);
+Compound = __decorate([
     (0, typeorm_1.Entity)()
-], Project);
-exports.Project = Project;
-//# sourceMappingURL=Project.js.map
+], Compound);
+exports.Compound = Compound;
+//# sourceMappingURL=Compound.js.map

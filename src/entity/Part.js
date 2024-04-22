@@ -24,6 +24,7 @@ const typeorm_1 = require("typeorm");
 const data_source_1 = require("../data-source");
 const Project_1 = require("./Project");
 const class_transformer_1 = require("class-transformer");
+const LogEntry_1 = require("./LogEntry");
 let Part = Part_1 = class Part {
     static getPartsInDB() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -70,6 +71,10 @@ __decorate([
     (0, typeorm_1.Column)(),
     __metadata("design:type", Number)
 ], Part.prototype, "quantityRequested", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)((type) => LogEntry_1.LogEntry, entry => entry.part, { cascade: true }),
+    __metadata("design:type", Array)
+], Part.prototype, "logEntries", void 0);
 Part = Part_1 = __decorate([
     (0, typeorm_1.Entity)()
 ], Part);
