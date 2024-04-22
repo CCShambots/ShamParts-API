@@ -1,8 +1,8 @@
 import {AppDataSource} from "../data-source";
 import {User} from "../entity/User";
-import {Request, response, Response} from "express";
+import {Request, Response} from "express";
 import {sendPasswordResetEmail, sendVerificationEmail} from "../util/Mailjet";
-import {classToPlain, instanceToPlain} from "class-transformer";
+import {instanceToPlain} from "class-transformer";
 import configJson from "../../config.json";
 import path from 'path';
 
@@ -25,6 +25,10 @@ function stringToHash(string) {
 function generateRandomToken() {
     return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
+}
+
+export const getRoles = async (req:Request, res:Response) => {
+    return res.status(200).send(configJson.roles);
 }
 
 export const createUser = async (req:Request, res:Response) => {
@@ -114,7 +118,91 @@ export const cancelUser = async (req:Request, res:Response) => {
     return res.status(200).send("User removed");
 }
 
+export const addUserRole = async (req:Request, res:Response) => {
+
+    //Authenticate the token
+    if(!req.headers.token) return res.status(400).send("Missing token");
+
+    //Load the user from the token
+    let postingUser = await User.getUserFromRandomToken(req.headers.token as string)
+
+    if(!postingUser.roles.includes("admin")) return res.status(403).send("Unauthorized");
+
+    const user = await User.getUserFromEmail(req.query.email as string)
+
+    if(!user) {
+        return res.status(404).send("User not found");
+    }
+
+    user.roles.push(req.query.role as string);
+
+    await AppDataSource.manager.save(user);
+
+    return res.status(200).send("Role added");
+
+}
+
+export const setUserRoles = async (req:Request, res:Response) => {
+
+    //Authenticate the token
+    if(!req.headers.token) return res.status(400).send("Missing token");
+
+    //Load the user from the token
+    let postingUser = await User.getUserFromRandomToken(req.headers.token as string)
+
+    if(!postingUser.roles.includes("admin")) return res.status(403).send("Unauthorized");
+
+    const user = await User.getUserFromEmail(req.query.email as string)
+
+    if(!user) {
+        return res.status(404).send("User not found");
+    }
+
+    user.roles = (req.query.roles as string).split(",");
+
+    await AppDataSource.manager.save(user);
+
+    return res.status(200).send("Role added");
+
+}
+
+export const removeUserRole = async (req:Request, res:Response) => {
+
+    //Authenticate the token
+    if(!req.headers.token) return res.status(400).send("Missing token");
+
+    //Load the user from the token
+    let postingUser = await User.getUserFromRandomToken(req.headers.token as string)
+
+    if(!postingUser.roles.includes("admin")) return res.status(403).send("Unauthorized");
+
+    const user = await User.getUserFromEmail(req.query.email as string)
+
+    if(!user) {
+        return res.status(404).send("User not found");
+    }
+
+    let originalRoles = user.roles;
+
+    user.roles = user.roles.filter(e => e !== req.query.role as string);
+
+    if(originalRoles.length === user.roles.length) return res.status(400).send("Role not found");
+
+    await AppDataSource.manager.save(user);
+
+    return res.status(200).send("Role removed");
+
+}
+
 export const getUsers = async (req:Request, res:Response) => {
+
+    //Authenticate the token
+    if(!req.headers.token) return res.status(400).send("Missing token");
+
+    let verificationStatus = await verifyUserFromToken(req.headers.token as string)
+
+    if(verificationStatus !== 200) return res.status(verificationStatus).send("Invalid token");
+
     const users = await AppDataSource.manager
         .createQueryBuilder(User, "user")
         .getMany();
@@ -142,6 +230,21 @@ export const getUserFromToken = async  (req:Request, res:Response) => {
     }
 
     return res.status(200).send(instanceToPlain(user));
+}
+
+export const changeUserName = async (req:Request, res:Response) => {
+    const user = await User.getUserFromRandomToken(req.query.token as string)
+
+    if(!user) {
+        return res.status(404).send("User not found");
+    }
+
+    user.name = req.query.name as string;
+
+    await AppDataSource.manager.save(user);
+
+    return res.status(200).send("Name changed");
+
 }
 
 export const forgotPassword = async (req:Request, res:Response) => {
@@ -196,4 +299,12 @@ export const deleteUser = async (req:Request, res:Response) => {
     await AppDataSource.manager.remove(user);
 
     return res.status(200).send("User deleted");
+}
+
+async function verifyUserFromToken(token:string) {
+    let user = await User.getUserFromRandomToken(token)
+
+    if(!user) return 403;
+    if(!user.verified) return 403;
+    else return 200;
 }

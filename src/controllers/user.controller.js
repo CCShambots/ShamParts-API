@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteUser = exports.resetPassword = exports.resetPasswordPage = exports.forgotPassword = exports.getUserFromToken = exports.getUser = exports.getUsers = exports.cancelUser = exports.authenticateUser = exports.verifyUser = exports.createUser = void 0;
+exports.deleteUser = exports.resetPassword = exports.resetPasswordPage = exports.forgotPassword = exports.changeUserName = exports.getUserFromToken = exports.getUser = exports.getUsers = exports.removeUserRole = exports.addUserRole = exports.cancelUser = exports.authenticateUser = exports.verifyUser = exports.createUser = exports.getRoles = void 0;
 const data_source_1 = require("../data-source");
 const User_1 = require("../entity/User");
 const Mailjet_1 = require("../util/Mailjet");
@@ -33,6 +33,10 @@ function stringToHash(string) {
 function generateRandomToken() {
     return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 }
+const getRoles = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    return res.status(200).send(config_json_1.default.roles);
+});
+exports.getRoles = getRoles;
 const createUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     if (!req.query.email || !req.query.password || !req.query.name)
         return res.status(400).send("Missing parameters");
@@ -101,7 +105,50 @@ const cancelUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     return res.status(200).send("User removed");
 });
 exports.cancelUser = cancelUser;
+const addUserRole = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    //Authenticate the token
+    if (!req.headers.token)
+        return res.status(400).send("Missing token");
+    //Load the user from the token
+    let postingUser = yield User_1.User.getUserFromRandomToken(req.headers.token);
+    if (!postingUser.roles.includes("admin"))
+        return res.status(403).send("Unauthorized");
+    const user = yield User_1.User.getUserFromEmail(req.query.email);
+    if (!user) {
+        return res.status(404).send("User not found");
+    }
+    user.roles.push(req.query.role);
+    yield data_source_1.AppDataSource.manager.save(user);
+    return res.status(200).send("Role added");
+});
+exports.addUserRole = addUserRole;
+const removeUserRole = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    //Authenticate the token
+    if (!req.headers.token)
+        return res.status(400).send("Missing token");
+    //Load the user from the token
+    let postingUser = yield User_1.User.getUserFromRandomToken(req.headers.token);
+    if (!postingUser.roles.includes("admin"))
+        return res.status(403).send("Unauthorized");
+    const user = yield User_1.User.getUserFromEmail(req.query.email);
+    if (!user) {
+        return res.status(404).send("User not found");
+    }
+    let originalRoles = user.roles;
+    user.roles = user.roles.filter(e => e !== req.query.role);
+    if (originalRoles.length === user.roles.length)
+        return res.status(400).send("Role not found");
+    yield data_source_1.AppDataSource.manager.save(user);
+    return res.status(200).send("Role removed");
+});
+exports.removeUserRole = removeUserRole;
 const getUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    //Authenticate the token
+    if (!req.headers.token)
+        return res.status(400).send("Missing token");
+    let verificationStatus = yield verifyUserFromToken(req.headers.token);
+    if (verificationStatus !== 200)
+        return res.status(verificationStatus).send("Invalid token");
     const users = yield data_source_1.AppDataSource.manager
         .createQueryBuilder(User_1.User, "user")
         .getMany();
@@ -125,6 +172,16 @@ const getUserFromToken = (req, res) => __awaiter(void 0, void 0, void 0, functio
     return res.status(200).send((0, class_transformer_1.instanceToPlain)(user));
 });
 exports.getUserFromToken = getUserFromToken;
+const changeUserName = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = yield User_1.User.getUserFromRandomToken(req.query.token);
+    if (!user) {
+        return res.status(404).send("User not found");
+    }
+    user.name = req.query.name;
+    yield data_source_1.AppDataSource.manager.save(user);
+    return res.status(200).send("Name changed");
+});
+exports.changeUserName = changeUserName;
 const forgotPassword = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const user = yield User_1.User.getUserFromEmail(req.query.email);
     if (!user) {
@@ -164,4 +221,15 @@ const deleteUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     return res.status(200).send("User deleted");
 });
 exports.deleteUser = deleteUser;
+function verifyUserFromToken(token) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let user = yield User_1.User.getUserFromRandomToken(token);
+        if (!user)
+            return 403;
+        if (!user.verified)
+            return 403;
+        else
+            return 200;
+    });
+}
 //# sourceMappingURL=user.controller.js.map
