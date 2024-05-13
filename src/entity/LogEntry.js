@@ -36,6 +36,10 @@ __decorate([
     __metadata("design:type", String)
 ], LogEntry.prototype, "message", void 0);
 __decorate([
+    (0, typeorm_1.Column)(),
+    __metadata("design:type", String)
+], LogEntry.prototype, "author", void 0);
+__decorate([
     (0, typeorm_1.ManyToOne)(type => Compound_1.Compound, compound => compound.logEntries),
     __metadata("design:type", Compound_1.Compound)
 ], LogEntry.prototype, "compound", void 0);

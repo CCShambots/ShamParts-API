@@ -24,6 +24,9 @@ export const createProject = async (req:Request, res:Response) => {
     project.default_workspace = bodyInfo.default_workspace as string;
     project.assembly_onshape_id = bodyInfo.main_assembly as string;
     project.assembly_name = bodyInfo.name + " Main Assembly" as string;
+    project.admin_roles = [];
+    project.read_roles = [];
+    project.write_roles = [];
 
     project.parts =
         await Onshape.getPartsFromAssembly(
@@ -54,6 +57,10 @@ export const getProjects = async (req:Request, res:Response) => {
           .getMany();
     }
 
+    if(!projects) {
+        return res.status(404).send("Projects not found");
+    }
+
     return res.send(projects.map(e => e.name));
 }
 
@@ -67,12 +74,29 @@ export const getProject = async (req:Request, res:Response) => {
         return res.status(404).send("User not found");
     }
 
-    const project = user.projects.filter(e => e.name === req.params.name)[0];
+    //If the user has a null project associated with them, create an empty array
+    if(user.projects === undefined) {
+        user.projects = [];
+
+        await AppDataSource.manager.save(user);
+    }
+
+    let project = user.projects.filter(e => e.name === req.params.name)[0];
+
+    //If the user is an admin, just search all projects and load it absolutely
+    if(!project && user.roles.includes('admin')) {
+        project = await AppDataSource.manager
+          .createQueryBuilder(Project, "project")
+          .where("project.name = :name", {name: req.params.name})
+          .innerJoinAndSelect("project.parts", "part")
+          .getOne();
+    }
 
     if(!project) {
         return res.status(404).send("Project not found");
     }
 
+    //TODO: Fix individual parts issues
     project.individual_parts = [];
     
     return res.send(project);

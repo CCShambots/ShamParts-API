@@ -134,6 +134,9 @@ export const addUserRole = async (req:Request, res:Response) => {
         return res.status(404).send("User not found");
     }
 
+    //Prevent adding duplicate roles
+    if(user.roles.includes(req.query.role as string)) return res.status(400).send("User already has role");
+
     user.roles.push(req.query.role as string);
 
     await AppDataSource.manager.save(user);
@@ -182,9 +185,13 @@ export const removeUserRole = async (req:Request, res:Response) => {
         return res.status(404).send("User not found");
     }
 
+    const removingRole = req.query.role as string;
+
+    if(postingUser.email === user.email && removingRole === "admin") return res.status(403).send("Cannot remove own admin role");
+
     let originalRoles = user.roles;
 
-    user.roles = user.roles.filter(e => e !== req.query.role as string);
+    user.roles = user.roles.filter(e => e !== removingRole);
 
     if(originalRoles.length === user.roles.length) return res.status(400).send("Role not found");
 

@@ -1,4 +1,4 @@
-import {Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn} from "typeorm";
+import {Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn} from "typeorm";
 import {Compound} from "./Compound";
 import {Part} from "./Part";
 
@@ -19,6 +19,9 @@ export class LogEntry {
 
     @Column()
     message: string
+
+    @Column()
+    author: string
 
     @ManyToOne(type => Compound, compound => compound.logEntries)
     compound: Compound

@@ -151,8 +151,11 @@ const removeUserRole = (req, res) => __awaiter(void 0, void 0, void 0, function*
     if (!user) {
         return res.status(404).send("User not found");
     }
+    const removingRole = req.query.role;
+    if (postingUser.email === user.email && removingRole === "admin")
+        return res.status(403).send("Cannot remove own admin role");
     let originalRoles = user.roles;
-    user.roles = user.roles.filter(e => e !== req.query.role);
+    user.roles = user.roles.filter(e => e !== removingRole);
     if (originalRoles.length === user.roles.length)
         return res.status(400).send("Role not found");
     yield data_source_1.AppDataSource.manager.save(user);

@@ -28,6 +28,9 @@ const createProject = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     project.default_workspace = bodyInfo.default_workspace;
     project.assembly_onshape_id = bodyInfo.main_assembly;
     project.assembly_name = bodyInfo.name + " Main Assembly";
+    project.admin_roles = [];
+    project.read_roles = [];
+    project.write_roles = [];
     project.parts =
         yield Onshape_1.Onshape.getPartsFromAssembly(project);
     console.log(project.parts);
@@ -47,6 +50,9 @@ const getProjects = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
             .createQueryBuilder(Project_1.Project, "project")
             .getMany();
     }
+    if (!projects) {
+        return res.status(404).send("Projects not found");
+    }
     return res.send(projects.map(e => e.name));
 });
 exports.getProjects = getProjects;
@@ -57,10 +63,24 @@ const getProject = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     if (!user) {
         return res.status(404).send("User not found");
     }
-    const project = user.projects.filter(e => e.name === req.params.name)[0];
+    //If the user has a null project associated with them, create an empty array
+    if (user.projects === undefined) {
+        user.projects = [];
+        yield data_source_1.AppDataSource.manager.save(user);
+    }
+    let project = user.projects.filter(e => e.name === req.params.name)[0];
+    //If the user is an admin, just search all projects and load it absolutely
+    if (!project && user.roles.includes('admin')) {
+        project = yield data_source_1.AppDataSource.manager
+            .createQueryBuilder(Project_1.Project, "project")
+            .where("project.name = :name", { name: req.params.name })
+            .innerJoinAndSelect("project.parts", "part")
+            .getOne();
+    }
     if (!project) {
         return res.status(404).send("Project not found");
     }
+    //TODO: Fix individual parts issues
     project.individual_parts = [];
     return res.send(project);
 });

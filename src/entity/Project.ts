@@ -24,6 +24,15 @@ export class Project {
     @Column()
     assembly_onshape_id:string
 
+    @Column("text", {array: true})
+    admin_roles: string[]
+
+    @Column("text", {array: true})
+    write_roles: string[]
+
+    @Column("text", {array: true})
+    read_roles: string[]
+
     @OneToMany((type) => Part, part => part.project, {cascade: true})
     parts: Part[]
 

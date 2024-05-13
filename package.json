@@ -1,7 +1,7 @@
 {
-  "name": "typeorm-typescript-example",
+  "name": "sham-parts-api",
   "version": "0.0.1",
-  "description": "Example how to use TypeORM with TypeScript.",
+  "description": "API for the ShamParts PLM app.",
   "license": "MIT",
   "readmeFilename": "README.md",
   "author": {

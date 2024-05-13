@@ -18,9 +18,9 @@ const router = express.Router();
 router.get("/", getUser)
 router.get("/fromToken", getUserFromToken)
 
-router.get('roles', getRoles)
-router.post("/addRole", addUserRole)
-router.delete("/removeRole", removeUserRole)
+router.get("/roles", getRoles)
+router.patch("/addRole", addUserRole)
+router.patch("/removeRole", removeUserRole)
 router.patch("/setRoles", setUserRoles)
 
 router.post("/create", createUser)
