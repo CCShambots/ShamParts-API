@@ -18,7 +18,7 @@ const config_json_1 = __importDefault(require("../../config.json"));
 const OnshapeAssembly_1 = require("./OnshapeAssembly");
 const Part_1 = require("../entity/Part");
 function fetchFromOnshape(url) {
-    console.log(`Making call to: https://cad.onshape.com/api/v6/${url}`);
+    // console.log(`Making call to: https://cad.onshape.com/api/v6/${url}`)
     return fetch(`https://cad.onshape.com/api/v6/${url}`, {
         method: "GET",
         headers: {
@@ -50,13 +50,19 @@ exports.Onshape = {
                 //load existing parts
                 const parts = yield Part_1.Part.getPartsInDB();
                 const headers = exports.Onshape.getHeaders(json);
-                return yield json.rows.map((item) => {
+                return yield Promise.all(json.rows.map((item) => __awaiter(this, void 0, void 0, function* () {
                     const headerIdToValue = item["headerIdToValue"];
                     const partNumber = headerIdToValue[headers.name];
-                    const partsWithThisNumber = parts.filter(e => e.number === partNumber);
+                    const partsWithThisNumber = parts.filter(e => e.onshape_element_id === item["itemSource"]["elementId"]);
                     const partAlreadyExists = partsWithThisNumber.length > 0;
-                    const part = partsWithThisNumber.length > 0 ? partsWithThisNumber[0] : new Part_1.Part();
-                    part.number = partNumber;
+                    const part = partAlreadyExists ? partsWithThisNumber[0] : new Part_1.Part();
+                    if (partNumber != null) {
+                        part.number = partNumber;
+                    }
+                    else {
+                        console.log("FAIL");
+                        part.number = "SOMETHING WENT VERY WRONG :(";
+                    }
                     part.project = project;
                     const materialObjet = headerIdToValue[headers.material];
                     if (materialObjet != null)
@@ -65,48 +71,76 @@ exports.Onshape = {
                     else if (part.material == null)
                         part.material = "Unknown Material";
                     part.quantityNeeded = headerIdToValue[headers.quantity];
-                    // part.thumbnail = this.parseThumbnailInfo(item["thumbnailInfo"]["sizes"])
-                    part.onshape_id = item["itemSource"]["elementId"];
+                    //Load onshape details
+                    part.onshape_document_id = item["itemSource"]["documentId"];
+                    part.onshape_wvm_id = item["itemSource"]["wvmId"];
+                    part.onshape_wvm_type = item["itemSource"]["wvmType"];
+                    part.onshape_element_id = item["itemSource"]["elementId"];
+                    part.onshape_part_id = item["itemSource"]["partId"];
+                    part.logEntries = [];
+                    part.asigneeName = '';
+                    part.asigneeId = -1;
+                    let boundingBox = yield this.getBoundingBox(part);
+                    //Sort the bounding box from smallest to largest, round to the nearest 0.5, and convert to string, save as dimension 1, 2, and 3
+                    part.dimension1 = boundingBox.sort()[0].toFixed(1);
+                    part.dimension2 = boundingBox.sort()[1].toFixed(1);
+                    part.dimension3 = boundingBox.sort()[2].toFixed(1);
                     if (!partAlreadyExists) {
                         part.quantityInStock = 0;
                         part.quantityRequested = part.quantityNeeded;
                         part.thumbnail = "unloaded";
                     }
                     return part;
-                });
+                })));
             }
             catch (e_1) {
                 console.log(e_1);
             }
         });
     },
+    getBoundingBox(part) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return fetchFromOnshape(`parts/d/${part.onshape_document_id}/${part.onshape_wvm_type}/${part.onshape_wvm_id}/e/${part.onshape_element_id}/partid/${part.onshape_part_id}/boundingboxes`)
+                .then((response) => response.json()).then((json) => {
+                let xDiff = json["highX"] - json["lowX"];
+                let yDiff = json["highY"] - json["lowY"];
+                let zDiff = json["highZ"] - json["lowZ"];
+                //Convert from meters to inches and return
+                return [
+                    xDiff * 39.3701,
+                    yDiff * 39.3701,
+                    zDiff * 39.3701
+                ];
+            });
+        });
+    },
     getHeaders(jsonData) {
-        const headers = jsonData["headers"].map(e => { return { name: e.name, id: e.id }; });
+        const headers = jsonData["headers"].map(e => {
+            return { name: e.name, id: e.id };
+        });
         return ({
             name: headers.filter(e => e.name.toLowerCase() === "name")[0].id,
             material: headers.filter(e => e.name.toLowerCase() === "material")[0].id,
             quantity: headers.filter(e => e.name.toLowerCase() === "quantity")[0].id,
         });
     },
-    getThumbnailForElement(documentId, workspaceID, elementId, part) {
-        return fetchFromOnshape(`parts/d/${documentId}/w/${workspaceID}/e/${elementId}?withThumbnails=true`)
+    getThumbnailForElement(documentId, workspaceID, wvmIdType, elementId, part) {
+        return fetchFromOnshape(`parts/d/${documentId}/${wvmIdType}/${workspaceID}/e/${elementId}?withThumbnails=true`)
             .then((response) => response.json()).then((json) => {
             try {
                 var thisEle;
                 try {
-                    thisEle = json.filter(e => e.name === part.number)[0];
+                    thisEle = json.filter(e => {
+                        return e.name.trim() === part.number.trim();
+                    })[0];
                 }
                 catch (e) {
                     //means there was only one part in the element presumably
                     thisEle = json;
                 }
-                console.log(thisEle);
                 return this.parseThumbnailInfo(thisEle["thumbnailInfo"].sizes);
             }
             catch (e) {
-                console.log(e);
-                console.log(json);
-                console.log(`${documentId},${workspaceID},${elementId}`);
                 return "fail";
             }
         });

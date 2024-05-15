@@ -3,6 +3,7 @@ import {Part} from "./Part";
 import {User} from "./User";
 import {JoinTable} from "typeorm";
 import {Compound} from "./Compound";
+import {Exclude} from "class-transformer";
 
 @Entity()
 export class Project {
@@ -41,6 +42,7 @@ export class Project {
 
     @JoinTable()
     @ManyToMany(type => User)
+    @Exclude()
     users: User[]
 
     @OneToMany((type) => Compound, compound => compound.project, {cascade: true})

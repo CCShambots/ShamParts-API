@@ -1,6 +1,10 @@
 import {Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn} from "typeorm";
 import {Compound} from "./Compound";
 import {Part} from "./Part";
+import {Exclude} from "class-transformer";
+
+
+type logEntryType = "thumbnailUpload" | "thumbnailChange" | "camUpload" | "camChange" | "manufacture" | "prep" | "break" | "request" | "fulfill" | "assign" | "unAssign" | "dimensionChange"
 
 @Entity()
 export class LogEntry {
@@ -9,7 +13,7 @@ export class LogEntry {
     id: number
 
     @Column()
-    type: "thumbnailUpload" | "thumbnailChange" | "camUpload" | "camChange" | "manufacture" | "prep" | "break"
+    type: logEntryType
 
     @CreateDateColumn()
     date: Date
@@ -24,9 +28,30 @@ export class LogEntry {
     author: string
 
     @ManyToOne(type => Compound, compound => compound.logEntries)
+    @Exclude()
     compound: Compound
 
     @ManyToOne(type => Part, part => part.logEntries)
+    @Exclude()
     part: Part
+
+    static createLogEntry(type: logEntryType, quantity: number, message: string, author: string) {
+        const logEntry = new LogEntry()
+        logEntry.type = type
+        logEntry.quantity = quantity
+        logEntry.message = message
+        logEntry.author = author
+        logEntry.date = new Date(Date.now())
+        return logEntry
+    }
+
+    addToPart(part: Part) {
+        this.part = part
+
+        if(part.logEntries == undefined) {
+            part.logEntries = []
+        }
+        part.logEntries.push(this)
+    }
 
 }

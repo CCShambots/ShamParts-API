@@ -11,5 +11,8 @@ router.get('/:id/loadImage', part_controller_1.loadPartThumbnail);
 router.get('/:id/break', part_controller_1.reportBreakage);
 router.get('/:id/request', part_controller_1.requestAdditional);
 router.get('/:id/fulfill', part_controller_1.fulfillRequest);
+router.patch('/:id/assign', part_controller_1.assignUser);
+router.delete('/:id/unAssign', part_controller_1.unAssignUser);
+router.patch("/:id/setDimensions", part_controller_1.setDimensions);
 exports.default = router;
 //# sourceMappingURL=part.js.map

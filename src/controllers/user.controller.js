@@ -117,6 +117,9 @@ const addUserRole = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     if (!user) {
         return res.status(404).send("User not found");
     }
+    //Prevent adding duplicate roles
+    if (user.roles.includes(req.query.role))
+        return res.status(400).send("User already has role");
     user.roles.push(req.query.role);
     yield data_source_1.AppDataSource.manager.save(user);
     return res.status(200).send("Role added");

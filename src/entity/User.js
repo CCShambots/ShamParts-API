@@ -35,6 +35,7 @@ let User = User_1 = class User {
     }
     static getUserFromRandomToken(token) {
         return __awaiter(this, void 0, void 0, function* () {
+            //TODO: This doen't fully exploret he tree of data of the project
             return yield data_source_1.AppDataSource.manager
                 .createQueryBuilder(User_1, "user")
                 .where("user.randomToken = :token", { token: token })

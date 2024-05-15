@@ -26,10 +26,27 @@ const Project_1 = require("./Project");
 const class_transformer_1 = require("class-transformer");
 const LogEntry_1 = require("./LogEntry");
 let Part = Part_1 = class Part {
+    setAsignee(asignee) {
+        this.asigneeName = asignee.name;
+        this.asigneeId = asignee.id;
+        //Save user
+        data_source_1.AppDataSource.manager.save(asignee);
+        //Save part
+        data_source_1.AppDataSource.manager.save(this);
+    }
     static getPartsInDB() {
         return __awaiter(this, void 0, void 0, function* () {
             return yield data_source_1.AppDataSource.createQueryBuilder(Part_1, "part")
                 .getMany();
+        });
+    }
+    static getPartFromId(id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield data_source_1.AppDataSource.createQueryBuilder(Part_1, "part")
+                .leftJoinAndSelect("part.project", "project")
+                .leftJoinAndSelect("part.logEntries", "logEntries")
+                .where("part.id = :id", { id: id })
+                .getOne();
         });
     }
 };
@@ -58,7 +75,35 @@ __decorate([
 __decorate([
     (0, typeorm_1.Column)(),
     __metadata("design:type", String)
-], Part.prototype, "onshape_id", void 0);
+], Part.prototype, "dimension1", void 0);
+__decorate([
+    (0, typeorm_1.Column)(),
+    __metadata("design:type", String)
+], Part.prototype, "dimension2", void 0);
+__decorate([
+    (0, typeorm_1.Column)(),
+    __metadata("design:type", String)
+], Part.prototype, "dimension3", void 0);
+__decorate([
+    (0, typeorm_1.Column)(),
+    __metadata("design:type", String)
+], Part.prototype, "onshape_element_id", void 0);
+__decorate([
+    (0, typeorm_1.Column)(),
+    __metadata("design:type", String)
+], Part.prototype, "onshape_part_id", void 0);
+__decorate([
+    (0, typeorm_1.Column)(),
+    __metadata("design:type", String)
+], Part.prototype, "onshape_document_id", void 0);
+__decorate([
+    (0, typeorm_1.Column)(),
+    __metadata("design:type", String)
+], Part.prototype, "onshape_wvm_id", void 0);
+__decorate([
+    (0, typeorm_1.Column)(),
+    __metadata("design:type", String)
+], Part.prototype, "onshape_wvm_type", void 0);
 __decorate([
     (0, typeorm_1.Column)(),
     __metadata("design:type", Number)
@@ -75,6 +120,14 @@ __decorate([
     (0, typeorm_1.OneToMany)((type) => LogEntry_1.LogEntry, entry => entry.part, { cascade: true }),
     __metadata("design:type", Array)
 ], Part.prototype, "logEntries", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ default: "" }),
+    __metadata("design:type", String)
+], Part.prototype, "asigneeName", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "int", nullable: true }),
+    __metadata("design:type", Number)
+], Part.prototype, "asigneeId", void 0);
 Part = Part_1 = __decorate([
     (0, typeorm_1.Entity)()
 ], Part);

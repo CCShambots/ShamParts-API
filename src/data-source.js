@@ -14,7 +14,7 @@ exports.AppDataSource = new typeorm_1.DataSource({
     port: 5432,
     username: "postgres",
     password: "5907",
-    database: "postgres",
+    database: "new",
     synchronize: true,
     logging: false,
     entities: [Part_1.Part, Project_1.Project, User_1.User, Compound_1.Compound, LogEntry_1.LogEntry],

@@ -8,12 +8,30 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var LogEntry_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LogEntry = void 0;
 const typeorm_1 = require("typeorm");
 const Compound_1 = require("./Compound");
 const Part_1 = require("./Part");
-let LogEntry = class LogEntry {
+const class_transformer_1 = require("class-transformer");
+let LogEntry = LogEntry_1 = class LogEntry {
+    static createLogEntry(type, quantity, message, author) {
+        const logEntry = new LogEntry_1();
+        logEntry.type = type;
+        logEntry.quantity = quantity;
+        logEntry.message = message;
+        logEntry.author = author;
+        logEntry.date = new Date(Date.now());
+        return logEntry;
+    }
+    addToPart(part) {
+        this.part = part;
+        if (part.logEntries == undefined) {
+            part.logEntries = [];
+        }
+        part.logEntries.push(this);
+    }
 };
 __decorate([
     (0, typeorm_1.PrimaryGeneratedColumn)(),
@@ -41,13 +59,15 @@ __decorate([
 ], LogEntry.prototype, "author", void 0);
 __decorate([
     (0, typeorm_1.ManyToOne)(type => Compound_1.Compound, compound => compound.logEntries),
+    (0, class_transformer_1.Exclude)(),
     __metadata("design:type", Compound_1.Compound)
 ], LogEntry.prototype, "compound", void 0);
 __decorate([
     (0, typeorm_1.ManyToOne)(type => Part_1.Part, part => part.logEntries),
+    (0, class_transformer_1.Exclude)(),
     __metadata("design:type", Part_1.Part)
 ], LogEntry.prototype, "part", void 0);
-LogEntry = __decorate([
+LogEntry = LogEntry_1 = __decorate([
     (0, typeorm_1.Entity)()
 ], LogEntry);
 exports.LogEntry = LogEntry;

@@ -14,6 +14,8 @@ const Project_1 = require("../entity/Project");
 const data_source_1 = require("../data-source");
 const Onshape_1 = require("../util/Onshape");
 const User_1 = require("../entity/User");
+const class_transformer_1 = require("class-transformer");
+const LogEntry_1 = require("../entity/LogEntry");
 const createProject = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const bodyInfo = req.body;
     const projects = yield data_source_1.AppDataSource.manager
@@ -33,9 +35,8 @@ const createProject = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     project.write_roles = [];
     project.parts =
         yield Onshape_1.Onshape.getPartsFromAssembly(project);
-    console.log(project.parts);
     yield data_source_1.AppDataSource.manager.save(project);
-    return res.status(200).send(project);
+    return res.status(200).send((0, class_transformer_1.instanceToPlain)(project));
 });
 exports.createProject = createProject;
 const getProjects = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -77,12 +78,22 @@ const getProject = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             .innerJoinAndSelect("project.parts", "part")
             .getOne();
     }
+    let logEntries = yield data_source_1.AppDataSource.manager
+        .createQueryBuilder(LogEntry_1.LogEntry, "logEntry")
+        .innerJoinAndSelect("logEntry.part", "part")
+        .getMany();
+    //Load the log info
+    if (project) {
+        for (let part of project.parts) {
+            part.logEntries = logEntries.filter(e => e.part.id === part.id);
+        }
+    }
     if (!project) {
         return res.status(404).send("Project not found");
     }
     //TODO: Fix individual parts issues
     project.individual_parts = [];
-    return res.send(project);
+    return res.send((0, class_transformer_1.instanceToPlain)(project));
 });
 exports.getProject = getProject;
 //# sourceMappingURL=project.controller.js.map

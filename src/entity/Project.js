@@ -15,6 +15,7 @@ const Part_1 = require("./Part");
 const User_1 = require("./User");
 const typeorm_2 = require("typeorm");
 const Compound_1 = require("./Compound");
+const class_transformer_1 = require("class-transformer");
 let Project = class Project {
 };
 __decorate([
@@ -64,6 +65,7 @@ __decorate([
 __decorate([
     (0, typeorm_2.JoinTable)(),
     (0, typeorm_1.ManyToMany)(type => User_1.User),
+    (0, class_transformer_1.Exclude)(),
     __metadata("design:type", Array)
 ], Project.prototype, "users", void 0);
 __decorate([
