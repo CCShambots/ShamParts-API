@@ -6,6 +6,8 @@ import {LogEntry} from "./LogEntry";
 import {User} from "./User";
 import {assignUser} from "../controllers/part.controller";
 
+export type partType = "compound" | "plate" | "tube" | "shaft" | "spacer" | "other"
+
 @Entity()
 export class Part  {
     @PrimaryGeneratedColumn()
@@ -61,12 +63,14 @@ export class Part  {
     @OneToMany((type) => LogEntry, entry => entry.part, {cascade: true})
     logEntries: LogEntry[]
 
-
     @Column({default: ""})
     asigneeName: string
 
     @Column({type:"int", nullable: true})
     asigneeId: number
+
+    @Column({default: "other"})
+    partType: string
 
     setAsignee(asignee: User) {
 

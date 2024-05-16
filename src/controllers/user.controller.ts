@@ -6,7 +6,6 @@ import {instanceToPlain} from "class-transformer";
 import configJson from "../../config.json";
 import path from 'path';
 
-
 function stringToHash(string) {
 
     let hash = 0;

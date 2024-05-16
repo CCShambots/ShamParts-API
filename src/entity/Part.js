@@ -128,6 +128,10 @@ __decorate([
     (0, typeorm_1.Column)({ type: "int", nullable: true }),
     __metadata("design:type", Number)
 ], Part.prototype, "asigneeId", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ default: "other" }),
+    __metadata("design:type", String)
+], Part.prototype, "partType", void 0);
 Part = Part_1 = __decorate([
     (0, typeorm_1.Entity)()
 ], Part);

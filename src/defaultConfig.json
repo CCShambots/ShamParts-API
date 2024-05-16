@@ -6,5 +6,6 @@
   "sender_email": "",
   "ip_address": "",
   "admin_user": "",
-  "roles": []
+  "roles": [],
+  "part_types": []
 }

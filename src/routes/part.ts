@@ -2,13 +2,16 @@ import express from 'express';
 import {
     assignUser,
     fulfillRequest,
-    getPart,
+    getPart, getPartTypes,
     loadPartThumbnail,
     reportBreakage,
-    requestAdditional, setDimensions, unAssignUser
+    requestAdditional, setDimensions, setPartType, unAssignUser
 } from "../controllers/part.controller";
 
 const router = express.Router();
+
+router.get("/types", getPartTypes)
+router.patch("/:id/setPartType", setPartType)
 
 router.get('/:id', getPart);
 router.get('/:id/loadImage', loadPartThumbnail);
@@ -18,5 +21,7 @@ router.get('/:id/fulfill', fulfillRequest);
 router.patch('/:id/assign', assignUser)
 router.delete('/:id/unAssign', unAssignUser)
 router.patch("/:id/setDimensions", setDimensions)
+
+
 
 export default router;

@@ -4,7 +4,19 @@ import {Part} from "./Part";
 import {Exclude} from "class-transformer";
 
 
-type logEntryType = "thumbnailUpload" | "thumbnailChange" | "camUpload" | "camChange" | "manufacture" | "prep" | "break" | "request" | "fulfill" | "assign" | "unAssign" | "dimensionChange"
+type logEntryType = "thumbnailUpload"
+    | "thumbnailChange"
+    | "camUpload"
+    | "camChange"
+    | "manufacture"
+    | "prep"
+    | "break"
+    | "request"
+    | "fulfill"
+    | "assign"
+    | "unAssign"
+    | "dimensionChange"
+    | "typeChange"
 
 @Entity()
 export class LogEntry {

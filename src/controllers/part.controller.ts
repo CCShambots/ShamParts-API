@@ -5,6 +5,8 @@ import {Onshape} from "../util/Onshape";
 import {LogEntry} from "../entity/LogEntry";
 import {User} from "../entity/User";
 import {instanceToPlain} from "class-transformer";
+import configJson from "../../config.json";
+
 
 //TODO: Fix bug with loading images that aren't saved in that document
 
@@ -207,4 +209,35 @@ export const setDimensions = async (req:Request, res:Response) => {
     await AppDataSource.manager.save(loaded);
 
     res.status(200).send(instanceToPlain(loaded));
+}
+
+export const getPartTypes = async (req:Request, res:Response) => {
+    return res.status(200).send(configJson.part_types)
+}
+
+export const setPartType = async (req:Request, res:Response) => {
+    const user = await User.getUserFromRandomToken(req.headers.token as string)
+
+    if(!user) {
+        return res.status(404).send("User not found");
+    }
+
+    const id = req.params.id;
+
+    //Load the part object from the database with this id
+    const loaded = await Part.getPartFromId(id);
+
+    //Make sure the part type is valid
+    if(!configJson.part_types.includes(req.body.partType)) {
+        return res.status(400).send("Invalid part type");
+    }
+
+    loaded.partType = req.body.partType;
+
+    //Log entry
+    LogEntry.createLogEntry("typeChange", -1, req.body.partType, user.name).addToPart(loaded);
+
+    await AppDataSource.manager.save(loaded);
+
+    return res.status(200).send(instanceToPlain(loaded));
 }
