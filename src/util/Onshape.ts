@@ -2,7 +2,6 @@ import {OnshapeDocument} from "./OnshapeDocument";
 import configJson from "../../config.json";
 import {OnshapeAssembly} from "./OnshapeAssembly";
 import {Part} from "../entity/Part";
-import {AppDataSource} from "../data-source";
 import {Project} from "../entity/Project";
 
 function fetchFromOnshape(url: string) {
