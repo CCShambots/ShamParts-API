@@ -36,6 +36,9 @@ export class Part  {
     @Column()
     dimension3: String
 
+    @Column({default: false})
+    dimensionsOverride: boolean
+
     @Column()
     onshape_element_id: string
 

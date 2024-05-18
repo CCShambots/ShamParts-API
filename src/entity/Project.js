@@ -17,6 +17,10 @@ const typeorm_2 = require("typeorm");
 const Compound_1 = require("./Compound");
 const class_transformer_1 = require("class-transformer");
 let Project = class Project {
+    getAllRoles() {
+        //Concatenate read, write, and admin roles together
+        return this.admin_roles.concat(this.write_roles).concat(this.read_roles);
+    }
 };
 __decorate([
     (0, typeorm_1.PrimaryGeneratedColumn)(),

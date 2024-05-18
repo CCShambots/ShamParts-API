@@ -3,6 +3,7 @@ import configJson from "../../config.json";
 import {OnshapeAssembly} from "./OnshapeAssembly";
 import {Part} from "../entity/Part";
 import {Project} from "../entity/Project";
+import Fraction from "fraction.js";
 
 function fetchFromOnshape(url: string) {
     // console.log(`Making call to: https://cad.onshape.com/api/v6/${url}`)
@@ -89,12 +90,18 @@ export var Onshape = {
                 part.asigneeName = ''
                 part.asigneeId = -1
 
-                let boundingBox = await this.getBoundingBox(part)
+                if(!partAlreadyExists) {
+                    part.dimensionsOverride = false;
+                }
 
-                //Sort the bounding box from smallest to largest, round to the nearest 0.5, and convert to string, save as dimension 1, 2, and 3
-                part.dimension1 = boundingBox.sort()[0].toFixed(1)
-                part.dimension2 = boundingBox.sort()[1].toFixed(1)
-                part.dimension3 = boundingBox.sort()[2].toFixed(1)
+                if(part.dimensionsOverride) {
+                    let boundingBox = await this.getBoundingBox(part)
+
+                    //Sort the bounding box from smallest to largest, round to the nearest 0.5, and convert to string, save as dimension 1, 2, and 3
+                    part.dimension1 = boundingBox.sort()[0].toFixed(1)
+                    part.dimension2 = boundingBox.sort()[1].toFixed(1)
+                    part.dimension3 = boundingBox.sort()[2].toFixed(1)
+                }
 
                 if (!partAlreadyExists) {
                     part.quantityInStock = 0

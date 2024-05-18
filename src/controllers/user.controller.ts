@@ -187,6 +187,7 @@ export const removeUserRole = async (req:Request, res:Response) => {
     const removingRole = req.query.role as string;
 
     if(postingUser.email === user.email && removingRole === "admin") return res.status(403).send("Cannot remove own admin role");
+    if(user.email === configJson.admin_user && removingRole === "admin") return res.status(403).send("Cannot de-admin the uber-admin");
 
     let originalRoles = user.roles;
 

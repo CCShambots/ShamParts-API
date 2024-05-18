@@ -85,6 +85,10 @@ __decorate([
     __metadata("design:type", String)
 ], Part.prototype, "dimension3", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ default: false }),
+    __metadata("design:type", Boolean)
+], Part.prototype, "dimensionsOverride", void 0);
+__decorate([
     (0, typeorm_1.Column)(),
     __metadata("design:type", String)
 ], Part.prototype, "onshape_element_id", void 0);

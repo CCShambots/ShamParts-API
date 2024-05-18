@@ -7,9 +7,6 @@ import {User} from "../entity/User";
 import {instanceToPlain} from "class-transformer";
 import configJson from "../../config.json";
 
-
-//TODO: Fix bug with loading images that aren't saved in that document
-
 export const getPart = async (req:Request, res:Response) => {
 
     const id = req.params.id;
@@ -202,6 +199,7 @@ export const setDimensions = async (req:Request, res:Response) => {
     loaded.dimension1 = d1;
     loaded.dimension2 = d2;
     loaded.dimension3 = d3;
+    loaded.dimensionsOverride = true;
 
     //Log entry
     LogEntry.createLogEntry("dimensionChange", -1, `${d1} x ${d2} x ${d3}`, user.name).addToPart(loaded);

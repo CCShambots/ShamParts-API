@@ -9,5 +9,7 @@ const router = express_1.default.Router();
 router.post('/create', project_controller_1.createProject);
 router.get('/list', project_controller_1.getProjects);
 router.get('/:name', project_controller_1.getProject);
+router.patch("/:name/addRole", project_controller_1.addRole);
+router.patch("/:name/removeRole", project_controller_1.removeRole);
 exports.default = router;
 //# sourceMappingURL=project.js.map

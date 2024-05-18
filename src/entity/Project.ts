@@ -47,4 +47,10 @@ export class Project {
 
     @OneToMany((type) => Compound, compound => compound.project, {cascade: true})
     compounds: Compound[]
+
+    getAllRoles() {
+        //Concatenate read, write, and admin roles together
+        return this.admin_roles.concat(this.write_roles).concat(this.read_roles)
+    }
+
 }
