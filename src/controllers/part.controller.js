@@ -20,7 +20,6 @@ const LogEntry_1 = require("../entity/LogEntry");
 const User_1 = require("../entity/User");
 const class_transformer_1 = require("class-transformer");
 const config_json_1 = __importDefault(require("../../config.json"));
-//TODO: Fix bug with loading images that aren't saved in that document
 const getPart = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const id = req.params.id;
     //Load the part object from the database with this id
@@ -90,7 +89,9 @@ const fulfillRequest = (req, res) => __awaiter(void 0, void 0, void 0, function*
     //Load the part object from the database with this id
     const loaded = yield Part_1.Part.getPartFromId(id);
     loaded.quantityInStock += quantity;
-    loaded.quantityRequested -= Math.max(quantity, 0);
+    loaded.quantityRequested -= quantity;
+    //Make sure the quantity requested is not negative
+    loaded.quantityRequested = Math.max(loaded.quantityRequested, 0);
     LogEntry_1.LogEntry.createLogEntry("fulfill", quantity, "", user.name).addToPart(loaded);
     yield data_source_1.AppDataSource.manager.save(loaded);
     res.status(200).send((0, class_transformer_1.instanceToPlain)(loaded));
@@ -148,6 +149,7 @@ const setDimensions = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     loaded.dimension1 = d1;
     loaded.dimension2 = d2;
     loaded.dimension3 = d3;
+    loaded.dimensionsOverride = true;
     //Log entry
     LogEntry_1.LogEntry.createLogEntry("dimensionChange", -1, `${d1} x ${d2} x ${d3}`, user.name).addToPart(loaded);
     yield data_source_1.AppDataSource.manager.save(loaded);

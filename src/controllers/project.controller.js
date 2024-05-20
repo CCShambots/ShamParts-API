@@ -123,7 +123,6 @@ const getProjects = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
             return e.getAllRoles().filter(ele => user.roles.includes(ele)).length > 0;
         });
     }
-    console.log(projects);
     if (!projects) {
         return res.status(404).send("Projects not found");
     }

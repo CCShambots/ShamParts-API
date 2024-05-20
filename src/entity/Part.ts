@@ -5,6 +5,7 @@ import {Exclude} from "class-transformer";
 import {LogEntry} from "./LogEntry";
 import {User} from "./User";
 import {assignUser} from "../controllers/part.controller";
+import {PartCombine} from "./PartCombine";
 
 export type partType = "compound" | "plate" | "tube" | "shaft" | "spacer" | "other"
 
@@ -53,6 +54,10 @@ export class Part  {
 
     @Column()
     onshape_wvm_type: string
+
+    @OneToMany((type) => PartCombine, combine => combine.parent_part, {cascade: true})
+    @Exclude()
+    part_combines: PartCombine[]
 
     @Column()
     quantityNeeded: number

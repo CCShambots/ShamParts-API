@@ -140,9 +140,7 @@ export const getProjects = async (req: Request, res: Response) => {
             return e.getAllRoles().filter(ele => user.roles.includes(ele)).length > 0;
         })
     }
-
-    console.log(projects)
-
+    
     if (!projects) {
         return res.status(404).send("Projects not found");
     }

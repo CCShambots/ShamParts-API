@@ -5,6 +5,7 @@ import {Project} from "./entity/Project";
 import {User} from "./entity/User";
 import {Compound} from "./entity/Compound";
 import {LogEntry} from "./entity/LogEntry";
+import {PartCombine} from "./entity/PartCombine";
 
 export const AppDataSource = new DataSource({
 
@@ -16,7 +17,7 @@ export const AppDataSource = new DataSource({
   database: "postgres",
   synchronize: true,
   logging: false,
-  entities: [Part, Project, User, Compound, LogEntry],
+  entities: [Part, Project, User, Compound, LogEntry, PartCombine],
   subscribers: [],
   migrations: [],
 })

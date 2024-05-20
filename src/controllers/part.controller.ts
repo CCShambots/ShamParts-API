@@ -117,7 +117,10 @@ export const fulfillRequest = async (req:Request, res:Response) => {
     const loaded = await Part.getPartFromId(id);
 
     loaded.quantityInStock += quantity;
-    loaded.quantityRequested -= Math.max(quantity, 0);
+    loaded.quantityRequested -= quantity;
+
+    //Make sure the quantity requested is not negative
+    loaded.quantityRequested = Math.max(loaded.quantityRequested, 0);
 
     LogEntry.createLogEntry("fulfill", quantity, "", user.name).addToPart(loaded)
 

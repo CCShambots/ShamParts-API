@@ -55,6 +55,7 @@ export var Onshape = {
                 const headerIdToValue = item["headerIdToValue"];
 
                 const partNumber = headerIdToValue[headers.name];
+                //TODO: Correct this to actually use all data
                 const partsWithThisNumber = parts.filter(e => e.onshape_element_id === item["itemSource"]["elementId"]);
 
                 const partAlreadyExists = partsWithThisNumber.length > 0;
@@ -85,12 +86,15 @@ export var Onshape = {
                 part.onshape_element_id = item["itemSource"]["elementId"]
                 part.onshape_part_id = item["itemSource"]["partId"]
 
-                part.logEntries = [];
-
-                part.asigneeName = ''
-                part.asigneeId = -1
 
                 if(!partAlreadyExists) {
+                    part.logEntries = [];
+
+                    part.asigneeName = ''
+                    part.asigneeId = -1
+
+                    part.part_combines = []
+
                     part.dimensionsOverride = false;
                 }
 
