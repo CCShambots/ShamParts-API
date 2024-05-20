@@ -8,7 +8,9 @@ import configJson from "../../config.json";
 import {generateRandomToken} from "./user.controller";
 
 export const getServers = async (req: Request, res: Response) => {
-    const servers = await AppDataSource.manager.find(Server)
+    let servers = await AppDataSource.manager.find(Server)
+
+    servers = servers.filter(e => e.verified)
 
     const plainServers = servers.map(e => instanceToPlain(e))
     return res.status(200).send(plainServers)
