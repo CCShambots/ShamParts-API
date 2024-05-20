@@ -3,7 +3,7 @@ import {
     assignUser,
     fulfillRequest,
     getPart, getPartTypes,
-    loadPartThumbnail,
+    loadPartThumbnail, mergeWithOthers,
     reportBreakage,
     requestAdditional, setDimensions, setPartType, unAssignUser
 } from "../controllers/part.controller";
@@ -22,6 +22,7 @@ router.patch('/:id/assign', assignUser)
 router.delete('/:id/unAssign', unAssignUser)
 router.patch("/:id/setDimensions", setDimensions)
 
+router.post("/:id/merge", mergeWithOthers)
 
 
 export default router;

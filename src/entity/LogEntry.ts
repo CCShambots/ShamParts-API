@@ -17,6 +17,7 @@ type logEntryType = "thumbnailUpload"
     | "unAssign"
     | "dimensionChange"
     | "typeChange"
+    | "merge"
 
 @Entity()
 export class LogEntry {

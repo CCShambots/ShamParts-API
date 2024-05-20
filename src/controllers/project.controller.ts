@@ -5,6 +5,7 @@ import {Onshape} from "../util/Onshape";
 import {User} from "../entity/User";
 import {instanceToPlain} from "class-transformer";
 import {LogEntry} from "../entity/LogEntry";
+import {PartCombine} from "../entity/PartCombine";
 
 
 export const createProject = async (req: Request, res: Response) => {
@@ -181,11 +182,17 @@ export const getProject = async (req: Request, res: Response) => {
         .innerJoinAndSelect("logEntry.part", "part")
         .getMany();
 
+    let partCombines = await AppDataSource.manager
+        .createQueryBuilder(PartCombine, "partCombine")
+        .getMany();
+
     //Load the log info
     if (project) {
         for (let part of project.parts) {
             part.logEntries = logEntries.filter(e => e.part.id === part.id);
+            part.part_combines = partCombines.filter(e => e.parent_id === part.id);
         }
+
     }
 
     if (!project) {

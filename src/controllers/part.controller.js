@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.setPartType = exports.getPartTypes = exports.setDimensions = exports.unAssignUser = exports.assignUser = exports.fulfillRequest = exports.requestAdditional = exports.reportBreakage = exports.loadPartThumbnail = exports.getPart = void 0;
+exports.setPartType = exports.getPartTypes = exports.setDimensions = exports.unAssignUser = exports.assignUser = exports.mergeWithOthers = exports.fulfillRequest = exports.requestAdditional = exports.reportBreakage = exports.loadPartThumbnail = exports.getPart = void 0;
 const data_source_1 = require("../data-source");
 const Part_1 = require("../entity/Part");
 const Onshape_1 = require("../util/Onshape");
@@ -20,6 +20,7 @@ const LogEntry_1 = require("../entity/LogEntry");
 const User_1 = require("../entity/User");
 const class_transformer_1 = require("class-transformer");
 const config_json_1 = __importDefault(require("../../config.json"));
+const PartCombine_1 = require("../entity/PartCombine");
 const getPart = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const id = req.params.id;
     //Load the part object from the database with this id
@@ -97,6 +98,53 @@ const fulfillRequest = (req, res) => __awaiter(void 0, void 0, void 0, function*
     res.status(200).send((0, class_transformer_1.instanceToPlain)(loaded));
 });
 exports.fulfillRequest = fulfillRequest;
+const mergeWithOthers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = yield User_1.User.getUserFromRandomToken(req.headers.token);
+    if (!user) {
+        return res.status(404).send("User not found");
+    }
+    const id = parseInt(req.params.id);
+    //Load the part object from the database with this id
+    const loaded = yield Part_1.Part.getPartFromId(id);
+    if (!loaded) {
+        return res.status(404).send("Part not found");
+    }
+    if (!loaded.part_combines) {
+        loaded.part_combines = [];
+    }
+    //Load the parts to merge with
+    const partsToMerge = req.body.parts;
+    //Make sure the parts to merge with are valid
+    for (let partId of partsToMerge) {
+        let thisPart = yield Part_1.Part.getPartFromId(partId.toString());
+        if (!thisPart) {
+            return res.status(404).send(`Part not found: ${partId}`);
+        }
+        if (partId === id) {
+            return res.status(400).send("Cannot merge a part with itself");
+        }
+        if (loaded.quantityNeeded !== thisPart.quantityNeeded) {
+            return res.status(400).send("Parts must have the same quantity needed to be merged");
+        }
+        let combine = new PartCombine_1.PartCombine();
+        combine.parent_part = loaded;
+        combine.parent_id = loaded.id;
+        combine.onshape_element_id = thisPart.onshape_element_id;
+        combine.onshape_part_id = thisPart.onshape_part_id;
+        combine.onshape_document_id = thisPart.onshape_document_id;
+        combine.onshape_wvm_id = thisPart.onshape_wvm_id;
+        combine.onshape_wvm_type = thisPart.onshape_wvm_type;
+        loaded.part_combines.push(combine);
+        //Remove old part from database
+        yield data_source_1.AppDataSource.manager.remove(thisPart);
+    }
+    //Save the compound object
+    yield data_source_1.AppDataSource.manager.save(loaded);
+    //Log entry
+    LogEntry_1.LogEntry.createLogEntry("merge", -1, partsToMerge.join(", "), user.name).addToPart(loaded);
+    res.status(200).send((0, class_transformer_1.instanceToPlain)(loaded));
+});
+exports.mergeWithOthers = mergeWithOthers;
 const assignUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const user = yield User_1.User.getUserFromRandomToken(req.headers.token);
     if (!user) {

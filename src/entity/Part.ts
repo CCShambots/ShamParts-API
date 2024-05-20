@@ -4,7 +4,6 @@ import {Project} from "./Project";
 import {Exclude} from "class-transformer";
 import {LogEntry} from "./LogEntry";
 import {User} from "./User";
-import {assignUser} from "../controllers/part.controller";
 import {PartCombine} from "./PartCombine";
 
 export type partType = "compound" | "plate" | "tube" | "shaft" | "spacer" | "other"
@@ -56,7 +55,6 @@ export class Part  {
     onshape_wvm_type: string
 
     @OneToMany((type) => PartCombine, combine => combine.parent_part, {cascade: true})
-    @Exclude()
     part_combines: PartCombine[]
 
     @Column()
@@ -97,10 +95,11 @@ export class Part  {
             .getMany();
     }
 
-    static async getPartFromId(id: string) {
+    static async getPartFromId(id: string|number) {
         return await AppDataSource.createQueryBuilder(Part, "part")
             .leftJoinAndSelect("part.project", "project")
             .leftJoinAndSelect("part.logEntries", "logEntries")
+            .leftJoinAndSelect("part.part_combines", "part_combines")
             .where("part.id = :id", {id: id})
             .getOne();
 

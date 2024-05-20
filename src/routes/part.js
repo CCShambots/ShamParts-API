@@ -16,5 +16,6 @@ router.get('/:id/fulfill', part_controller_1.fulfillRequest);
 router.patch('/:id/assign', part_controller_1.assignUser);
 router.delete('/:id/unAssign', part_controller_1.unAssignUser);
 router.patch("/:id/setDimensions", part_controller_1.setDimensions);
+router.post("/:id/merge", part_controller_1.mergeWithOthers);
 exports.default = router;
 //# sourceMappingURL=part.js.map

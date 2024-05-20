@@ -6,6 +6,7 @@ import {LogEntry} from "../entity/LogEntry";
 import {User} from "../entity/User";
 import {instanceToPlain} from "class-transformer";
 import configJson from "../../config.json";
+import {PartCombine} from "../entity/PartCombine";
 
 export const getPart = async (req:Request, res:Response) => {
 
@@ -125,6 +126,68 @@ export const fulfillRequest = async (req:Request, res:Response) => {
     LogEntry.createLogEntry("fulfill", quantity, "", user.name).addToPart(loaded)
 
     await AppDataSource.manager.save(loaded);
+
+    res.status(200).send(instanceToPlain(loaded));
+}
+
+export const mergeWithOthers = async (req:Request, res:Response) => {
+    const user = await User.getUserFromRandomToken(req.headers.token as string)
+
+    if(!user) {
+        return res.status(404).send("User not found");
+    }
+
+    const id = parseInt(req.params.id);
+
+    //Load the part object from the database with this id
+    const loaded = await Part.getPartFromId(id);
+
+    if(!loaded) {
+        return res.status(404).send("Part not found");
+    }
+
+    if(!loaded.part_combines) {loaded.part_combines = []}
+
+    //Load the parts to merge with
+    const partsToMerge = req.body.parts as number[];
+
+    //Make sure the parts to merge with are valid
+    for(let partId of partsToMerge) {
+        let thisPart = await Part.getPartFromId(partId.toString());
+
+        if(!thisPart) {
+            return res.status(404).send(`Part not found: ${partId}`);
+        }
+
+        if(partId === id) {
+            return res.status(400).send("Cannot merge a part with itself");
+        }
+
+        if(loaded.quantityNeeded !== thisPart.quantityNeeded) {
+            return res.status(400).send("Parts must have the same quantity needed to be merged");
+        }
+
+        let combine = new PartCombine();
+
+        combine.parent_part = loaded;
+        combine.parent_id = loaded.id;
+        combine.onshape_element_id = thisPart.onshape_element_id;
+        combine.onshape_part_id = thisPart.onshape_part_id;
+        combine.onshape_document_id = thisPart.onshape_document_id;
+        combine.onshape_wvm_id = thisPart.onshape_wvm_id;
+        combine.onshape_wvm_type = thisPart.onshape_wvm_type;
+
+        loaded.part_combines.push(combine)
+
+        //Remove old part from database
+        await AppDataSource.manager.remove(thisPart);
+    }
+
+    //Save the compound object
+    await AppDataSource.manager.save(loaded);
+
+    //Log entry
+    LogEntry.createLogEntry("merge", -1, partsToMerge.join(", "), user.name).addToPart(loaded);
 
     res.status(200).send(instanceToPlain(loaded));
 }

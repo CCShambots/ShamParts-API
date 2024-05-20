@@ -41,10 +41,38 @@ const morgan_1 = __importDefault(require("morgan"));
 const index_1 = __importDefault(require("./routes/index"));
 const http = __importStar(require("http"));
 require("reflect-metadata");
+const config_json_1 = __importDefault(require("../config.json"));
+const Server_1 = require("./entity/Server");
 data_source_1.AppDataSource.initialize()
     .then(() => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const router = (0, express_1.default)();
+    if (config_json_1.default.ip_address === config_json_1.default.leader_ip) {
+        //This is the leader repo, so create the database entry
+        let server = new Server_1.Server();
+        server.name = config_json_1.default.name;
+        server.ip = config_json_1.default.ip_address;
+        yield data_source_1.AppDataSource.manager.save(server);
+    }
+    else {
+        //Register with the host
+        console.log(`Attempting to register with master server at: ${config_json_1.default.leader_ip}`);
+        let response = yield fetch(`${config_json_1.default.leader_ip}/register`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                name: config_json_1.default.name,
+                ip_address: config_json_1.default.ip_address
+            }),
+            signal: AbortSignal.timeout(5000)
+        });
+        if (response.status !== 200) {
+            console.log(`Error registering with host: ${response.status} ${response.statusText}`);
+            process.exit(-1);
+        }
+    }
     router.use((0, morgan_1.default)("dev"));
     router.use(express_1.default.urlencoded({ extended: false }));
     router.use(express_1.default.json());

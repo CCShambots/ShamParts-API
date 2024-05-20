@@ -16,6 +16,7 @@ const Onshape_1 = require("../util/Onshape");
 const User_1 = require("../entity/User");
 const class_transformer_1 = require("class-transformer");
 const LogEntry_1 = require("../entity/LogEntry");
+const PartCombine_1 = require("../entity/PartCombine");
 const createProject = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const bodyInfo = req.body;
     const projects = yield data_source_1.AppDataSource.manager
@@ -154,10 +155,14 @@ const getProject = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         .createQueryBuilder(LogEntry_1.LogEntry, "logEntry")
         .innerJoinAndSelect("logEntry.part", "part")
         .getMany();
+    let partCombines = yield data_source_1.AppDataSource.manager
+        .createQueryBuilder(PartCombine_1.PartCombine, "partCombine")
+        .getMany();
     //Load the log info
     if (project) {
         for (let part of project.parts) {
             part.logEntries = logEntries.filter(e => e.part.id === part.id);
+            part.part_combines = partCombines.filter(e => e.parent_id === part.id);
         }
     }
     if (!project) {

@@ -46,6 +46,7 @@ let Part = Part_1 = class Part {
             return yield data_source_1.AppDataSource.createQueryBuilder(Part_1, "part")
                 .leftJoinAndSelect("part.project", "project")
                 .leftJoinAndSelect("part.logEntries", "logEntries")
+                .leftJoinAndSelect("part.part_combines", "part_combines")
                 .where("part.id = :id", { id: id })
                 .getOne();
         });
@@ -111,7 +112,6 @@ __decorate([
 ], Part.prototype, "onshape_wvm_type", void 0);
 __decorate([
     (0, typeorm_1.OneToMany)((type) => PartCombine_1.PartCombine, combine => combine.parent_part, { cascade: true }),
-    (0, class_transformer_1.Exclude)(),
     __metadata("design:type", Array)
 ], Part.prototype, "part_combines", void 0);
 __decorate([
