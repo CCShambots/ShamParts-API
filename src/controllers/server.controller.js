@@ -50,6 +50,7 @@ const verifyServer = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         return res.status(404).send("Server not found");
     }
     server.verified = true;
+    yield data_source_1.AppDataSource.manager.save(server);
     return res.status(200).send(server);
 });
 exports.verifyServer = verifyServer;

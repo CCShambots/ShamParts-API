@@ -27,13 +27,13 @@ export class Part  {
     @Column()
     thumbnail: string
 
-    @Column()
+    @Column({default: 0})
     dimension1: String
 
-    @Column()
+    @Column({default: 0})
     dimension2: String
 
-    @Column()
+    @Column({default: 0})
     dimension3: String
 
     @Column({default: false})
