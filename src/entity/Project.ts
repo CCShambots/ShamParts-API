@@ -53,4 +53,10 @@ export class Project {
         return this.admin_roles.concat(this.write_roles).concat(this.read_roles)
     }
 
+    userHasAccess(user:User) {
+        //Check if the user has any roles that are included on this project
+
+        return this.getAllRoles().some(role => user.roles.includes(role));
+    }
+
 }

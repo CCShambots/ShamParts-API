@@ -75,15 +75,15 @@ __decorate([
     __metadata("design:type", String)
 ], Part.prototype, "thumbnail", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)({ default: 0 }),
     __metadata("design:type", String)
 ], Part.prototype, "dimension1", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)({ default: 0 }),
     __metadata("design:type", String)
 ], Part.prototype, "dimension2", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)({ default: 0 }),
     __metadata("design:type", String)
 ], Part.prototype, "dimension3", void 0);
 __decorate([

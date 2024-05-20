@@ -29,10 +29,6 @@ export class User {
     @Column()
     verified: boolean
 
-    @Exclude()
-    @ManyToMany(type => Project, project => project.users)
-    projects: Project[]
-
     static async getUserFromEmail(email:string) {
         return await AppDataSource.manager
             .createQueryBuilder(User, "user")

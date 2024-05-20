@@ -21,6 +21,10 @@ let Project = class Project {
         //Concatenate read, write, and admin roles together
         return this.admin_roles.concat(this.write_roles).concat(this.read_roles);
     }
+    userHasAccess(user) {
+        //Check if the user has any roles that are included on this project
+        return this.getAllRoles().some(role => user.roles.includes(role));
+    }
 };
 __decorate([
     (0, typeorm_1.PrimaryGeneratedColumn)(),

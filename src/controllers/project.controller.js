@@ -137,19 +137,14 @@ const getProject = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     if (!user) {
         return res.status(404).send("User not found");
     }
-    //If the user has a null project associated with them, create an empty array
-    if (user.projects === undefined) {
-        user.projects = [];
-        yield data_source_1.AppDataSource.manager.save(user);
-    }
-    let project = user.projects.filter(e => e.name === req.params.name)[0];
+    let project = yield data_source_1.AppDataSource.manager
+        .createQueryBuilder(Project_1.Project, "project")
+        .where("project.name = :name", { name: req.params.name })
+        .innerJoinAndSelect("project.parts", "part")
+        .getOne();
     //If the user is an admin, just search all projects and load it absolutely
-    if (!project && user.roles.includes('admin')) {
-        project = yield data_source_1.AppDataSource.manager
-            .createQueryBuilder(Project_1.Project, "project")
-            .where("project.name = :name", { name: req.params.name })
-            .innerJoinAndSelect("project.parts", "part")
-            .getOne();
+    if (!user.roles.includes('admin') && !project.userHasAccess(user)) {
+        return res.status(403).send("You do not have access to this project");
     }
     let logEntries = yield data_source_1.AppDataSource.manager
         .createQueryBuilder(LogEntry_1.LogEntry, "logEntry")

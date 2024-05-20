@@ -23,7 +23,6 @@ exports.User = void 0;
 const typeorm_1 = require("typeorm");
 const class_transformer_1 = require("class-transformer");
 const data_source_1 = require("../data-source");
-const Project_1 = require("./Project");
 let User = User_1 = class User {
     static getUserFromEmail(email) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -73,11 +72,6 @@ __decorate([
     (0, typeorm_1.Column)(),
     __metadata("design:type", Boolean)
 ], User.prototype, "verified", void 0);
-__decorate([
-    (0, class_transformer_1.Exclude)(),
-    (0, typeorm_1.ManyToMany)(type => Project_1.Project, project => project.users),
-    __metadata("design:type", Array)
-], User.prototype, "projects", void 0);
 User = User_1 = __decorate([
     (0, typeorm_1.Entity)()
 ], User);

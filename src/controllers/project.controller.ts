@@ -7,6 +7,7 @@ import {instanceToPlain} from "class-transformer";
 import {LogEntry} from "../entity/LogEntry";
 import {PartCombine} from "../entity/PartCombine";
 
+let creatingProject = false;
 
 export const createProject = async (req: Request, res: Response) => {
 
@@ -19,6 +20,12 @@ export const createProject = async (req: Request, res: Response) => {
     if (projects.some(project => project.onshape_id === bodyInfo.doc_id)) {
         return res.status(400).send("Project already exists");
     }
+
+    if (creatingProject) {
+        return res.status(400).send("A project is already being created");
+    }
+
+    creatingProject = true;
 
     let project = new Project();
 
@@ -37,6 +44,8 @@ export const createProject = async (req: Request, res: Response) => {
         );
 
     await AppDataSource.manager.save(project);
+
+    creatingProject = false;
 
     return res.status(200).send(instanceToPlain(project));
 
@@ -159,22 +168,15 @@ export const getProject = async (req: Request, res: Response) => {
         return res.status(404).send("User not found");
     }
 
-    //If the user has a null project associated with them, create an empty array
-    if (user.projects === undefined) {
-        user.projects = [];
-
-        await AppDataSource.manager.save(user);
-    }
-
-    let project = user.projects.filter(e => e.name === req.params.name)[0];
+    let project = await AppDataSource.manager
+        .createQueryBuilder(Project, "project")
+        .where("project.name = :name", {name: req.params.name})
+        .innerJoinAndSelect("project.parts", "part")
+        .getOne();
 
     //If the user is an admin, just search all projects and load it absolutely
-    if (!project && user.roles.includes('admin')) {
-        project = await AppDataSource.manager
-            .createQueryBuilder(Project, "project")
-            .where("project.name = :name", {name: req.params.name})
-            .innerJoinAndSelect("project.parts", "part")
-            .getOne();
+    if (!user.roles.includes('admin') && !project.userHasAccess(user)) {
+        return res.status(403).send("You do not have access to this project");
     }
 
     let logEntries = await AppDataSource.manager
