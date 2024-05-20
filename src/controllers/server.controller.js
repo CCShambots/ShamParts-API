@@ -45,7 +45,7 @@ const addFollowerServer = (req, res) => __awaiter(void 0, void 0, void 0, functi
 });
 exports.addFollowerServer = addFollowerServer;
 const verifyServer = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const server = yield data_source_1.AppDataSource.manager.findOne(Server_1.Server, { where: { ip: req.body.ip } });
+    const server = yield data_source_1.AppDataSource.manager.findOne(Server_1.Server, { where: { random_token: req.body.token } });
     if (!server) {
         return res.status(404).send("Server not found");
     }

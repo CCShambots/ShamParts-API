@@ -44,6 +44,7 @@ export const verifyServer = async (req: Request, res: Response) => {
     }
 
     server.verified = true;
+    await AppDataSource.manager.save(server)
     return res.status(200).send(server)
 }
 
