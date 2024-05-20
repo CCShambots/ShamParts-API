@@ -174,6 +174,10 @@ export const getProject = async (req: Request, res: Response) => {
         .innerJoinAndSelect("project.parts", "part")
         .getOne();
 
+    if(!project){
+        return res.status(404).send("Project not found");
+    }
+
     //If the user is an admin, just search all projects and load it absolutely
     if (!user.roles.includes('admin') && !project.userHasAccess(user)) {
         return res.status(403).send("You do not have access to this project");
