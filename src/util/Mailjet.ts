@@ -128,8 +128,8 @@ export async function sendServerVerification(email: string, name: string, verifi
                 TemplateLanguage: true,
                 Subject: 'Verify New ShamParts Server',
                 HTMLPart: '' +
-                    '<h3>{{var:name}}, thanks for signing up for ShamParts!</h3><br />' +
-                    'Click the below to verify your account: ' +
+                    '<h3>A new ShamParts Server has been registered: {{var:name}}</h3><br />' +
+                    'Click the below to verify : ' +
                     '<a href="{{var:ip}}/server/verify?token={{var:verificationToken}}" target="_blank">Verify Server</a><br/>' +
                     'If this server shouldn\'t exist, please click this link below to cancel the new server: ' +
                     '<a href="{{var:ip}}/server/deny?token={{var:verificationToken}}" target="_blank">Deny Server</a><br/>'

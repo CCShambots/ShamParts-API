@@ -38,7 +38,7 @@ export const addFollowerServer = async (req: Request, res: Response) => {
 }
 
 export const verifyServer = async (req: Request, res: Response) => {
-    const server = await AppDataSource.manager.findOne(Server, {where: {ip: req.body.ip}})
+    const server = await AppDataSource.manager.findOne(Server, {where: {random_token: req.body.token }})
     if (!server) {
         return res.status(404).send("Server not found")
     }
