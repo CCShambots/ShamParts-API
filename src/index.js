@@ -50,7 +50,11 @@ data_source_1.AppDataSource.initialize()
     if (config_json_1.default.ip_address === config_json_1.default.leader_ip) {
         //This is the leader repo, so create the database entry
         console.log("Detected this as leader server... instantiating self in database");
-        let server = new Server_1.Server();
+        //If this server already exists, just make sure it's name and IP are correct
+        let server = yield data_source_1.AppDataSource.manager.findOne(Server_1.Server, { where: { ip: config_json_1.default.ip_address } });
+        if (!server) {
+            server = new Server_1.Server();
+        }
         server.name = config_json_1.default.name;
         server.ip = config_json_1.default.ip_address;
         yield data_source_1.AppDataSource.manager.save(server);

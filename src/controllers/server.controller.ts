@@ -5,6 +5,7 @@ import {instanceToPlain} from "class-transformer";
 import {User} from "../entity/User";
 import {sendServerVerification} from "../util/Mailjet";
 import configJson from "../../config.json";
+import {generateRandomToken} from "./user.controller";
 
 export const getServers = async (req: Request, res: Response) => {
     const servers = await AppDataSource.manager.find(Server)
@@ -24,6 +25,8 @@ export const addFollowerServer = async (req: Request, res: Response) => {
     const server = new Server()
     server.name = req.body.name
     server.ip = req.body.ip
+    server.verified = false
+    server.random_token = generateRandomToken();
     await AppDataSource.manager.save(server)
 
     //Send verificaiton email

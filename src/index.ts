@@ -6,6 +6,7 @@ import * as http from "http";
 import 'reflect-metadata';
 import configJson from "../config.json";
 import {Server} from "./entity/Server";
+import {generateRandomToken} from "./controllers/user.controller";
 
 
 AppDataSource.initialize()
@@ -21,10 +22,12 @@ AppDataSource.initialize()
 
             if (!server) {
                 server = new Server();
+                server.random_token = generateRandomToken();
             }
 
             server.name = configJson.name
             server.ip = configJson.ip_address
+            server.verified = true;
 
             await AppDataSource.manager.save(server)
             console.log("successfully added self to database")
@@ -39,7 +42,7 @@ AppDataSource.initialize()
                 },
                 body: JSON.stringify({
                     name: configJson.name,
-                    ip_address: configJson.ip_address
+                    ip: configJson.ip_address
                 }),
                 signal: AbortSignal.timeout(5000)
             })
