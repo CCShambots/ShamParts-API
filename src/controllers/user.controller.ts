@@ -21,9 +21,8 @@ function stringToHash(string) {
     return hash.toString();
 }
 
-function generateRandomToken() {
+export function generateRandomToken() {
     return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-
 }
 
 export const getRoles = async (req:Request, res:Response) => {

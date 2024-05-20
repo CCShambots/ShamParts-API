@@ -8,5 +8,8 @@ const server_controller_1 = require("../controllers/server.controller");
 const router = express_1.default.Router();
 router.get("/list", server_controller_1.getServers);
 router.post("/add", server_controller_1.addFollowerServer);
+router.get("/verity", server_controller_1.verifyServer);
+router.get("/deny", server_controller_1.denyServer);
+router.delete("/delete", server_controller_1.deleteServer);
 exports.default = router;
 //# sourceMappingURL=server.js.map

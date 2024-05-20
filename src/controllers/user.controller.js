@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteUser = exports.resetPassword = exports.resetPasswordPage = exports.forgotPassword = exports.changeUserName = exports.getUserFromToken = exports.getUser = exports.getUsers = exports.removeUserRole = exports.setUserRoles = exports.addUserRole = exports.cancelUser = exports.authenticateUser = exports.verifyUser = exports.createUser = exports.getRoles = void 0;
+exports.deleteUser = exports.resetPassword = exports.resetPasswordPage = exports.forgotPassword = exports.changeUserName = exports.getUserFromToken = exports.getUser = exports.getUsers = exports.removeUserRole = exports.setUserRoles = exports.addUserRole = exports.cancelUser = exports.authenticateUser = exports.verifyUser = exports.createUser = exports.getRoles = exports.generateRandomToken = void 0;
 const data_source_1 = require("../data-source");
 const User_1 = require("../entity/User");
 const Mailjet_1 = require("../util/Mailjet");
@@ -33,6 +33,7 @@ function stringToHash(string) {
 function generateRandomToken() {
     return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 }
+exports.generateRandomToken = generateRandomToken;
 const getRoles = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     return res.status(200).send(config_json_1.default.roles);
 });

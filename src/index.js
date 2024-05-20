@@ -49,15 +49,17 @@ data_source_1.AppDataSource.initialize()
     const router = (0, express_1.default)();
     if (config_json_1.default.ip_address === config_json_1.default.leader_ip) {
         //This is the leader repo, so create the database entry
+        console.log("Detected this as leader server... instantiating self in database");
         let server = new Server_1.Server();
         server.name = config_json_1.default.name;
         server.ip = config_json_1.default.ip_address;
         yield data_source_1.AppDataSource.manager.save(server);
+        console.log("successfully added self to database");
     }
     else {
         //Register with the host
         console.log(`Attempting to register with master server at: ${config_json_1.default.leader_ip}`);
-        let response = yield fetch(`${config_json_1.default.leader_ip}/register`, {
+        let response = yield fetch(`${config_json_1.default.leader_ip}/server/add`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"

@@ -12,4 +12,8 @@ router.use('/part', part)
 router.use('/user', user)
 router.use("/server", server)
 
+router.get("/", (req, res) => {
+    res.status(200).send("I'm alive!!!")
+})
+
 export default router

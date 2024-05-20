@@ -1,4 +1,5 @@
 import {Column, Entity, PrimaryGeneratedColumn} from "typeorm";
+import {Exclude} from "class-transformer";
 
 @Entity()
 export class Server {
@@ -11,4 +12,11 @@ export class Server {
 
     @Column()
     name: string
+
+    @Column({default: false})
+    verified: boolean
+
+    @Column({default: ""})
+    @Exclude()
+    random_token: string
 }

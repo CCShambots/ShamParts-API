@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Server = void 0;
 const typeorm_1 = require("typeorm");
+const class_transformer_1 = require("class-transformer");
 let Server = class Server {
 };
 __decorate([
@@ -25,6 +26,15 @@ __decorate([
     (0, typeorm_1.Column)(),
     __metadata("design:type", String)
 ], Server.prototype, "name", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ default: false }),
+    __metadata("design:type", Boolean)
+], Server.prototype, "verified", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ default: "" }),
+    (0, class_transformer_1.Exclude)(),
+    __metadata("design:type", String)
+], Server.prototype, "random_token", void 0);
 Server = __decorate([
     (0, typeorm_1.Entity)()
 ], Server);
