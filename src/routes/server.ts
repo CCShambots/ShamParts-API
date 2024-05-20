@@ -7,7 +7,7 @@ router.get("/list", getServers)
 
 router.post("/add", addFollowerServer)
 
-router.get("/verity", verifyServer)
+router.get("/verify", verifyServer)
 router.get("/deny", denyServer)
 router.delete("/delete", deleteServer)
 

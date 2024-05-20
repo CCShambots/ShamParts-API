@@ -19,8 +19,10 @@ const class_transformer_1 = require("class-transformer");
 const User_1 = require("../entity/User");
 const Mailjet_1 = require("../util/Mailjet");
 const config_json_1 = __importDefault(require("../../config.json"));
+const user_controller_1 = require("./user.controller");
 const getServers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const servers = yield data_source_1.AppDataSource.manager.find(Server_1.Server);
+    let servers = yield data_source_1.AppDataSource.manager.find(Server_1.Server);
+    servers = servers.filter(e => e.verified);
     const plainServers = servers.map(e => (0, class_transformer_1.instanceToPlain)(e));
     return res.status(200).send(plainServers);
 });
@@ -34,6 +36,8 @@ const addFollowerServer = (req, res) => __awaiter(void 0, void 0, void 0, functi
     const server = new Server_1.Server();
     server.name = req.body.name;
     server.ip = req.body.ip;
+    server.verified = false;
+    server.random_token = (0, user_controller_1.generateRandomToken)();
     yield data_source_1.AppDataSource.manager.save(server);
     //Send verificaiton email
     yield (0, Mailjet_1.sendServerVerification)(config_json_1.default.admin_user, server.name, server.random_token);

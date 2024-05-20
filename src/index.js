@@ -43,6 +43,7 @@ const http = __importStar(require("http"));
 require("reflect-metadata");
 const config_json_1 = __importDefault(require("../config.json"));
 const Server_1 = require("./entity/Server");
+const user_controller_1 = require("./controllers/user.controller");
 data_source_1.AppDataSource.initialize()
     .then(() => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
@@ -54,9 +55,11 @@ data_source_1.AppDataSource.initialize()
         let server = yield data_source_1.AppDataSource.manager.findOne(Server_1.Server, { where: { ip: config_json_1.default.ip_address } });
         if (!server) {
             server = new Server_1.Server();
+            server.random_token = (0, user_controller_1.generateRandomToken)();
         }
         server.name = config_json_1.default.name;
         server.ip = config_json_1.default.ip_address;
+        server.verified = true;
         yield data_source_1.AppDataSource.manager.save(server);
         console.log("successfully added self to database");
     }
@@ -70,7 +73,7 @@ data_source_1.AppDataSource.initialize()
             },
             body: JSON.stringify({
                 name: config_json_1.default.name,
-                ip_address: config_json_1.default.ip_address
+                ip: config_json_1.default.ip_address
             }),
             signal: AbortSignal.timeout(5000)
         });
