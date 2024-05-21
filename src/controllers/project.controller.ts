@@ -11,6 +11,8 @@ let creatingProject = false;
 
 export const createProject = async (req: Request, res: Response) => {
 
+    console.log("Starting to create project")
+
     const bodyInfo = req.body
 
     const projects = await AppDataSource.manager
@@ -145,7 +147,6 @@ export const getProjects = async (req: Request, res: Response) => {
         .createQueryBuilder(Project, "project")
         .getMany();
 
-    console.log(projects)
 
     //If the user is an admin, return all projects
     if (user.roles.includes('admin')) {}
