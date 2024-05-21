@@ -76,7 +76,7 @@ export class Project {
             .createQueryBuilder(Project, "project")
             .where("project.name = :name", {name: name})
             .innerJoinAndSelect("project.parts", "part")
-            .innerJoinAndSelect("part.compounds", "compound")
+            .leftJoinAndSelect("part.compounds", "compound")
             .getOne();
 
         let logEntries = await AppDataSource.manager
