@@ -4,6 +4,9 @@ import {User} from "./User";
 import {JoinTable} from "typeorm";
 import {Compound} from "./Compound";
 import {Exclude} from "class-transformer";
+import {AppDataSource} from "../data-source";
+import {LogEntry} from "./LogEntry";
+import {PartCombine} from "./PartCombine";
 
 @Entity()
 export class Project {
@@ -56,7 +59,45 @@ export class Project {
     userHasAccess(user:User) {
         //Check if the user has any roles that are included on this project
 
-        return this.getAllRoles().some(role => user.roles.includes(role));
+        return this.getAllRoles().some(role => user.roles.includes(role)) || user.roles.includes('admin');
+    }
+
+    userCanWrite(user:User) {
+        //Check if the user has any roles that are included on this project
+        return this.write_roles.concat(this.admin_roles).some(role => user.roles.includes(role)) || user.roles.includes('admin');
+    }
+
+    userIsAdmin(user:User) {
+        return this.admin_roles.some(role => user.roles.includes(role)) || user.roles.includes('admin');
+    }
+
+    static async loadProject(name:string) {
+        let project = await AppDataSource.manager
+            .createQueryBuilder(Project, "project")
+            .where("project.name = :name", {name: name})
+            .innerJoinAndSelect("project.parts", "part")
+            .innerJoinAndSelect("part.compounds", "compound")
+            .getOne();
+
+        let logEntries = await AppDataSource.manager
+            .createQueryBuilder(LogEntry, "logEntry")
+            .innerJoinAndSelect("logEntry.part", "part")
+            .getMany();
+
+        let partCombines = await AppDataSource.manager
+            .createQueryBuilder(PartCombine, "partCombine")
+            .getMany();
+
+        //Load the log info
+        if (project) {
+            for (let part of project.parts) {
+                part.logEntries = logEntries.filter(e => e.part.id === part.id);
+                part.part_combines = partCombines.filter(e => e.parent_id === part.id);
+            }
+
+        }
+
+        return project;
     }
 
 }

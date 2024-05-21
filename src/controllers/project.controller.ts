@@ -38,6 +38,8 @@ export const createProject = async (req: Request, res: Response) => {
     project.read_roles = [];
     project.write_roles = [];
 
+    project.compounds = [];
+
     project.parts =
         await Onshape.getPartsFromAssembly(
             project
@@ -168,11 +170,7 @@ export const getProject = async (req: Request, res: Response) => {
         return res.status(404).send("User not found");
     }
 
-    let project = await AppDataSource.manager
-        .createQueryBuilder(Project, "project")
-        .where("project.name = :name", {name: req.params.name})
-        .innerJoinAndSelect("project.parts", "part")
-        .getOne();
+    let project = await Project.loadProject(req.params.name);
 
     if(!project){
         return res.status(404).send("Project not found");
@@ -181,24 +179,6 @@ export const getProject = async (req: Request, res: Response) => {
     //If the user is an admin, just search all projects and load it absolutely
     if (!user.roles.includes('admin') && !project.userHasAccess(user)) {
         return res.status(403).send("You do not have access to this project");
-    }
-
-    let logEntries = await AppDataSource.manager
-        .createQueryBuilder(LogEntry, "logEntry")
-        .innerJoinAndSelect("logEntry.part", "part")
-        .getMany();
-
-    let partCombines = await AppDataSource.manager
-        .createQueryBuilder(PartCombine, "partCombine")
-        .getMany();
-
-    //Load the log info
-    if (project) {
-        for (let part of project.parts) {
-            part.logEntries = logEntries.filter(e => e.part.id === part.id);
-            part.part_combines = partCombines.filter(e => e.parent_id === part.id);
-        }
-
     }
 
     if (!project) {

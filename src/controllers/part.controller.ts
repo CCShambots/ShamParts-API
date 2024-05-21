@@ -253,9 +253,9 @@ export const setDimensions = async (req:Request, res:Response) => {
     const loaded = await Part.getPartFromId(id);
 
     //Make sure each dimension is to exactly one decimal place
-    let d1 = parseFloat(req.body.d1).toFixed(1);
-    let d2 = parseFloat(req.body.d2).toFixed(1);
-    let d3 = parseFloat(req.body.d3).toFixed(1);
+    let d1 = parseFloat(req.body.d1).toFixed(3);
+    let d2 = parseFloat(req.body.d2).toFixed(3);
+    let d3 = parseFloat(req.body.d3).toFixed(3);
 
     //Check for Nans and reutrn an error if they are found
     if(d1 === "NaN" || d2 === "NaN" || d3 === "NaN") {

@@ -1,10 +1,11 @@
-import {Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn} from "typeorm";
+import {Column, Entity, JoinColumn, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn} from "typeorm";
 import {AppDataSource} from "../data-source";
 import {Project} from "./Project";
 import {Exclude} from "class-transformer";
 import {LogEntry} from "./LogEntry";
 import {User} from "./User";
 import {PartCombine} from "./PartCombine";
+import {Compound} from "./Compound";
 
 export type partType = "compound" | "plate" | "tube" | "shaft" | "spacer" | "other"
 
@@ -56,6 +57,10 @@ export class Part  {
 
     @OneToMany((type) => PartCombine, combine => combine.parent_part, {cascade: true})
     part_combines: PartCombine[]
+
+    @ManyToMany((type) => Compound, compound => compound.parts)
+    @Exclude()
+    compounds: Compound[]
 
     @Column()
     quantityNeeded: number

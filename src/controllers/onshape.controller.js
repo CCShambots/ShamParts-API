@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getOnshapeKey = exports.getAssemblies = exports.getDocuments = void 0;
 const Onshape_1 = require("../util/Onshape");
 const config_json_1 = __importDefault(require("../../config.json"));
+const User_1 = require("../entity/User");
 const getDocuments = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     let result = yield Onshape_1.Onshape.getDocuments(req.query.query);
     return res.send(result);
@@ -26,6 +27,14 @@ const getAssemblies = (req, res) => __awaiter(void 0, void 0, void 0, function* 
 });
 exports.getAssemblies = getAssemblies;
 const getOnshapeKey = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    //Make sure the user is verified by instantiating the user and checking the verified field
+    const user = yield User_1.User.getUserFromRandomToken(req.headers.token);
+    if (!user) {
+        return res.status(404).send("User not found");
+    }
+    if (!user.verified) {
+        return res.status(403).send("User not verified");
+    }
     return res.send(config_json_1.default.onshape_auth_code);
 });
 exports.getOnshapeKey = getOnshapeKey;

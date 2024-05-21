@@ -85,7 +85,7 @@ exports.Onshape = {
                         part.part_combines = [];
                         part.dimensionsOverride = false;
                     }
-                    if (part.dimensionsOverride) {
+                    if (!part.dimensionsOverride) {
                         let boundingBox = yield this.getBoundingBox(part);
                         //Sort the bounding box from smallest to largest, round to the nearest 0.5, and convert to string, save as dimension 1, 2, and 3
                         part.dimension1 = boundingBox.sort()[0].toFixed(1);

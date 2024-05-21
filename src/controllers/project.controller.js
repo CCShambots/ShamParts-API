@@ -17,6 +17,7 @@ const User_1 = require("../entity/User");
 const class_transformer_1 = require("class-transformer");
 const LogEntry_1 = require("../entity/LogEntry");
 const PartCombine_1 = require("../entity/PartCombine");
+let creatingProject = false;
 const createProject = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const bodyInfo = req.body;
     const projects = yield data_source_1.AppDataSource.manager
@@ -25,6 +26,10 @@ const createProject = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     if (projects.some(project => project.onshape_id === bodyInfo.doc_id)) {
         return res.status(400).send("Project already exists");
     }
+    if (creatingProject) {
+        return res.status(400).send("A project is already being created");
+    }
+    creatingProject = true;
     let project = new Project_1.Project();
     project.name = bodyInfo.name;
     project.onshape_id = bodyInfo.doc_id;
@@ -34,9 +39,11 @@ const createProject = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     project.admin_roles = [];
     project.read_roles = [];
     project.write_roles = [];
+    project.compounds = [];
     project.parts =
         yield Onshape_1.Onshape.getPartsFromAssembly(project);
     yield data_source_1.AppDataSource.manager.save(project);
+    creatingProject = false;
     return res.status(200).send((0, class_transformer_1.instanceToPlain)(project));
 });
 exports.createProject = createProject;
@@ -141,7 +148,16 @@ const getProject = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         .createQueryBuilder(Project_1.Project, "project")
         .where("project.name = :name", { name: req.params.name })
         .innerJoinAndSelect("project.parts", "part")
+        // .leftJoinAndSelect("part.compounds", "compound")
         .getOne();
+    if (!project) {
+        return res.status(404).send("Project not found");
+    }
+    if (project.compounds == null) {
+        project.compounds = [];
+        //save
+        yield data_source_1.AppDataSource.manager.save(project);
+    }
     //If the user is an admin, just search all projects and load it absolutely
     if (!user.roles.includes('admin') && !project.userHasAccess(user)) {
         return res.status(403).send("You do not have access to this project");
