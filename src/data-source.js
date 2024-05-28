@@ -10,6 +10,7 @@ const Compound_1 = require("./entity/Compound");
 const LogEntry_1 = require("./entity/LogEntry");
 const PartCombine_1 = require("./entity/PartCombine");
 const Server_1 = require("./entity/Server");
+const CompoundPart_1 = require("./entity/CompoundPart");
 exports.AppDataSource = new typeorm_1.DataSource({
     type: "postgres",
     host: "localhost",
@@ -19,7 +20,7 @@ exports.AppDataSource = new typeorm_1.DataSource({
     database: "postgres",
     synchronize: true,
     logging: false,
-    entities: [Part_1.Part, Project_1.Project, User_1.User, Compound_1.Compound, LogEntry_1.LogEntry, PartCombine_1.PartCombine, Server_1.Server],
+    entities: [Part_1.Part, Project_1.Project, User_1.User, Compound_1.Compound, LogEntry_1.LogEntry, PartCombine_1.PartCombine, Server_1.Server, CompoundPart_1.CompoundPart],
     subscribers: [],
     migrations: [],
 });

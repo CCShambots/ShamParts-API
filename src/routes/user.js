@@ -13,6 +13,7 @@ router.patch("/addRole", user_controller_1.addUserRole);
 router.patch("/removeRole", user_controller_1.removeUserRole);
 router.patch("/setRoles", user_controller_1.setUserRoles);
 router.post("/create", user_controller_1.createUser);
+router.post("/sendVerificationEmail", user_controller_1.sendEmail);
 router.get("/verify", user_controller_1.verifyUser);
 router.get("/authenticate", user_controller_1.authenticateUser);
 router.get("/cancel", user_controller_1.cancelUser);

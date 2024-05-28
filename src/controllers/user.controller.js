@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteUser = exports.resetPassword = exports.resetPasswordPage = exports.forgotPassword = exports.changeUserName = exports.getUserFromToken = exports.getUser = exports.getUsers = exports.removeUserRole = exports.setUserRoles = exports.addUserRole = exports.cancelUser = exports.authenticateUser = exports.verifyUser = exports.createUser = exports.getRoles = exports.generateRandomToken = void 0;
+exports.deleteUser = exports.resetPassword = exports.resetPasswordPage = exports.forgotPassword = exports.changeUserName = exports.getUserFromToken = exports.getUser = exports.getUsers = exports.removeUserRole = exports.setUserRoles = exports.addUserRole = exports.cancelUser = exports.authenticateUser = exports.verifyUser = exports.sendEmail = exports.createUser = exports.getRoles = exports.generateRandomToken = void 0;
 const data_source_1 = require("../data-source");
 const User_1 = require("../entity/User");
 const Mailjet_1 = require("../util/Mailjet");
@@ -71,6 +71,16 @@ const createUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     return res.status(200).send(userPlain);
 });
 exports.createUser = createUser;
+const sendEmail = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = yield User_1.User.getUserFromEmail(req.query.email);
+    if (!user) {
+        return res.status(404).send("User not found");
+    }
+    let responseStatus = yield (0, Mailjet_1.sendVerificationEmail)(user.email, user.name, user.randomToken);
+    console.log(responseStatus);
+    return res.status(200).send("Email sent");
+});
+exports.sendEmail = sendEmail;
 const verifyUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const user = yield User_1.User.getUserFromRandomToken(req.query.token);
     if (!user) {
@@ -84,7 +94,7 @@ const verifyUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
 });
 exports.verifyUser = verifyUser;
 const authenticateUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const user = yield User_1.User.getUserFromEmail(req.query.email);
+    const user = yield User_1.User.getUserFromEmail(req.body.email);
     if (!user) {
         return res.status(404).send("User not found");
     }

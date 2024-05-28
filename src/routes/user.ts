@@ -9,7 +9,7 @@ import {
     resetPassword,
     resetPasswordPage,
     authenticateUser,
-    verifyUser, getUserFromToken, changeUserName, addUserRole, removeUserRole, getRoles, setUserRoles
+    verifyUser, getUserFromToken, changeUserName, addUserRole, removeUserRole, getRoles, setUserRoles, sendEmail
 } from "../controllers/user.controller";
 
 
@@ -24,6 +24,7 @@ router.patch("/removeRole", removeUserRole)
 router.patch("/setRoles", setUserRoles)
 
 router.post("/create", createUser)
+router.post("/sendVerificationEmail", sendEmail)
 router.get("/verify", verifyUser)
 router.get("/authenticate", authenticateUser)
 router.get("/cancel", cancelUser)

@@ -26,6 +26,7 @@ const Project_1 = require("./Project");
 const class_transformer_1 = require("class-transformer");
 const LogEntry_1 = require("./LogEntry");
 const PartCombine_1 = require("./PartCombine");
+const Compound_1 = require("./Compound");
 let Part = Part_1 = class Part {
     setAsignee(asignee) {
         this.asigneeName = asignee.name;
@@ -114,6 +115,11 @@ __decorate([
     (0, typeorm_1.OneToMany)((type) => PartCombine_1.PartCombine, combine => combine.parent_part, { cascade: true }),
     __metadata("design:type", Array)
 ], Part.prototype, "part_combines", void 0);
+__decorate([
+    (0, typeorm_1.ManyToMany)((type) => Compound_1.Compound, compound => compound.parts),
+    (0, class_transformer_1.Exclude)(),
+    __metadata("design:type", Array)
+], Part.prototype, "compounds", void 0);
 __decorate([
     (0, typeorm_1.Column)(),
     __metadata("design:type", Number)

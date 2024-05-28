@@ -14,6 +14,7 @@ const typeorm_1 = require("typeorm");
 const Project_1 = require("./Project");
 const class_transformer_1 = require("class-transformer");
 const LogEntry_1 = require("./LogEntry");
+const CompoundPart_1 = require("./CompoundPart");
 let Compound = class Compound {
 };
 __decorate([
@@ -41,6 +42,11 @@ __decorate([
     (0, typeorm_1.ManyToOne)(type => Project_1.Project, project => project.compounds),
     __metadata("design:type", Project_1.Project)
 ], Compound.prototype, "project", void 0);
+__decorate([
+    (0, class_transformer_1.Exclude)(),
+    (0, typeorm_1.OneToMany)((type) => CompoundPart_1.CompoundPart, entry => entry.compound, { cascade: true }),
+    __metadata("design:type", Array)
+], Compound.prototype, "parts", void 0);
 __decorate([
     (0, typeorm_1.Column)(),
     __metadata("design:type", Boolean)
