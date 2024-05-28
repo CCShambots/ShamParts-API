@@ -75,6 +75,9 @@ export const createUser = async (req:Request, res:Response) => {
 export const sendEmail = async (req:Request, res:Response) => {
     const user = await User.getUserFromEmail(req.query.email as string)
 
+    console.log(req.query.email)
+    console.log(user)
+
     if(!user) {
         return res.status(404).send("User not found");
     }
