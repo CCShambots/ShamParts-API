@@ -103,7 +103,7 @@ export const verifyUser = async (req:Request, res:Response) => {
 }
 
 export const authenticateUser = async (req:Request, res:Response) => {
-    const user = await User.getUserFromEmail(req.body.email as string)
+    const user = await User.getUserFromEmail(req.query.email as string)
 
     if(!user) {
         return res.status(404).send("User not found");
