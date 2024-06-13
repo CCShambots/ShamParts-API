@@ -1,4 +1,4 @@
-import {Column, Entity, PrimaryGeneratedColumn} from "typeorm";
+import {Column, Entity, ManyToOne, PrimaryGeneratedColumn} from "typeorm";
 import {Part} from "./Part";
 import {Exclude} from "class-transformer";
 import {Compound} from "./Compound";
@@ -10,6 +10,7 @@ export class CompoundPart {
     id: number
 
     @Exclude()
+    @ManyToOne( type => Compound, compound => compound.parts)
     compound: Compound
 
     @Column()

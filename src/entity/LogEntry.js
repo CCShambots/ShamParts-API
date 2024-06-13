@@ -32,6 +32,13 @@ let LogEntry = LogEntry_1 = class LogEntry {
         }
         part.logEntries.push(this);
     }
+    addToCompound(compound) {
+        this.compound = compound;
+        if (compound.logEntries == undefined) {
+            compound.logEntries = [];
+        }
+        compound.logEntries.push(this);
+    }
 };
 __decorate([
     (0, typeorm_1.PrimaryGeneratedColumn)(),

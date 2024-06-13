@@ -84,7 +84,7 @@ data_source_1.AppDataSource.initialize()
     }
     router.use((0, morgan_1.default)("dev"));
     router.use(express_1.default.urlencoded({ extended: false }));
-    router.use(express_1.default.json());
+    router.use(express_1.default.json({ limit: "50mb" }));
     router.use((req, res, next) => {
         res.header("Access-Control-Allow-Origin", "*");
         res.header("Access-Control-Allow-Headers", "origin, X-Requested-With, Content-Type, Accept");

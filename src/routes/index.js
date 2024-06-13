@@ -9,12 +9,14 @@ const project_1 = __importDefault(require("./project"));
 const part_1 = __importDefault(require("./part"));
 const user_1 = __importDefault(require("./user"));
 const server_1 = __importDefault(require("./server"));
+const compound_1 = __importDefault(require("./compound"));
 const router = express_1.default.Router();
 router.use('/onshape', onshape_1.default);
 router.use('/project', project_1.default);
 router.use('/part', part_1.default);
 router.use('/user', user_1.default);
 router.use("/server", server_1.default);
+router.use("/compound", compound_1.default);
 router.get("/", (req, res) => {
     res.status(200).send("I'm alive!!!");
 });

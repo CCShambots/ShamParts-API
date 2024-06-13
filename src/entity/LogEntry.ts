@@ -67,4 +67,14 @@ export class LogEntry {
         part.logEntries.push(this)
     }
 
+    addToCompound(compound:Compound) {
+        this.compound = compound
+
+        if(compound.logEntries == undefined) {
+            compound.logEntries = []
+        }
+
+        compound.logEntries.push(this)
+    }
+
 }

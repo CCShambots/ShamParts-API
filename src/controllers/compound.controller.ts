@@ -3,6 +3,11 @@ import {Request, Response} from "express";
 import {User} from "../entity/User";
 import {Project} from "../entity/Project";
 import {Compound} from "../entity/Compound";
+import {AppDataSource} from "../data-source";
+import {CompoundPart} from "../entity/CompoundPart";
+import {instanceToPlain} from "class-transformer";
+import {Part} from "../entity/Part";
+import {LogEntry} from "../entity/LogEntry";
 
 export const createCompound = async (req:Request, res:Response) => {
     //Check user is correct
@@ -31,13 +36,148 @@ export const createCompound = async (req:Request, res:Response) => {
     const compound = new Compound();
     compound.name = req.body.name;
     compound.project = project;
+    project.compounds.push(compound);
 
     compound.material = req.body.material;
     compound.thickness = req.body.thickness;
 
+    compound.parts = req.body.parts.map((e) => {
+        const part = new CompoundPart()
+        part.compound = compound;
+        part.part_id = e.partId;
+        part.quantity = e.quantity;
 
-    compound.parts = req.body.parts;
+        return part;
+    });
 
+    compound.thumbnail = "";
 
+    compound.camDone = false;
+    compound.camInstructions = [];
 
+    //save the project
+    await AppDataSource.manager.save(project);
+
+    res.status(200).send(instanceToPlain(compound));
+
+}
+
+export const assignUser = async (req:Request, res:Response) => {
+    const user = await User.getUserFromRandomToken(req.headers.token as string)
+
+    if(!user) {
+        return res.status(404).send("User not found");
+    }
+
+    //Load the user included in the query params
+    const asignee = await User.getUserFromEmail(req.body.email as string);
+
+    if(!asignee) return res.status(404).send("Asignee not found");
+
+    const id = req.params.id;
+
+    //Load the part object from the database with this id
+    const loaded = await Compound.getCompoundFromId(id);
+
+    LogEntry.createLogEntry("assign", -1, asignee.name, user.name).addToCompound(loaded);
+
+    loaded.setAsignee(asignee);
+
+    await AppDataSource.manager.save(loaded);
+
+    res.status(200).send(instanceToPlain(loaded));
+}
+
+export const unAssignUser = async (req:Request, res:Response) => {
+    const user = await User.getUserFromRandomToken(req.headers.token as string)
+
+    if(!user) {
+        return res.status(404).send("User not found");
+    }
+
+    const id = req.params.id;
+
+    //Load the part object from the database with this id
+    const loaded = await Part.getPartFromId(id);
+
+    LogEntry.createLogEntry("assign", -1, loaded.asigneeName, user.name).addToPart(loaded);
+
+    loaded.asigneeName = ""
+    loaded.asigneeId = -1
+
+    await AppDataSource.manager.save(loaded);
+
+    res.status(200).send(instanceToPlain(loaded));
+}
+
+export const uploadImage = async (req:Request, res:Response) => {
+    const user = await User.getUserFromRandomToken(req.headers.token as string)
+
+    if(!user) {
+        return res.status(404).send("User not found");
+    }
+
+    const id = req.params.id;
+
+    //Load the part object from the database with this id
+    const loaded = await Compound.getCompoundFromId(id);
+
+    loaded.thumbnail = req.body.image;
+
+    await AppDataSource.manager.save(loaded);
+
+    res.status(200).send(instanceToPlain(loaded));
+}
+
+export const camDone = async (req:Request, res:Response) => {
+    const user = await User.getUserFromRandomToken(req.headers.token as string)
+
+    if(!user) {
+        return res.status(404).send("User not found");
+    }
+
+    const id = req.params.id;
+
+    //Load the part object from the database with this id
+    const loaded = await Compound.getCompoundFromId(id);
+
+    loaded.camDone = req.body.done;
+
+    //Generate a log entry
+    LogEntry.createLogEntry("camUpload", -1, "CAM Done: " + req.body.done, user.name).addToCompound(loaded);
+
+    await AppDataSource.manager.save(loaded);
+
+    res.status(200).send(instanceToPlain(loaded));
+}
+
+export const fulfillCompound = async (req:Request, res:Response) => {
+    const user = await User.getUserFromRandomToken(req.headers.token as string)
+
+    if(!user) {
+        return res.status(404).send("User not found");
+    }
+
+    const id = req.params.id;
+
+    //Load the part object from the database with this id
+    const loaded = await Compound.getCompoundFromId(id);
+
+    //Remove the asignee
+    loaded.asigneeName = ""
+    loaded.asigneeId = -1
+
+    //Generate a log entry
+    LogEntry.createLogEntry("fulfill", 1, "Fulfilled", user.name).addToCompound(loaded);
+
+    //Load all the parts in this compound and fulfill them in the correct quantities
+    for(let part of loaded.parts) {
+        const partLoaded = await Part.getPartFromId(part.part_id);
+        partLoaded.quantityInStock += part.quantity;
+        await AppDataSource.manager.save(partLoaded);
+    }
+
+    await AppDataSource.manager.save(loaded);
+
+    res.status(200).send(instanceToPlain(loaded));
 }

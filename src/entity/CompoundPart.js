@@ -36,6 +36,7 @@ __decorate([
 ], CompoundPart.prototype, "id", void 0);
 __decorate([
     (0, class_transformer_1.Exclude)(),
+    (0, typeorm_1.ManyToOne)(type => Compound_1.Compound, compound => compound.parts),
     __metadata("design:type", Compound_1.Compound)
 ], CompoundPart.prototype, "compound", void 0);
 __decorate([

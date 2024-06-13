@@ -73,6 +73,8 @@ const createUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
 exports.createUser = createUser;
 const sendEmail = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const user = yield User_1.User.getUserFromEmail(req.query.email);
+    console.log(req.query.email);
+    console.log(user);
     if (!user) {
         return res.status(404).send("User not found");
     }
@@ -94,7 +96,7 @@ const verifyUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
 });
 exports.verifyUser = verifyUser;
 const authenticateUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const user = yield User_1.User.getUserFromEmail(req.body.email);
+    const user = yield User_1.User.getUserFromEmail(req.query.email);
     if (!user) {
         return res.status(404).send("User not found");
     }

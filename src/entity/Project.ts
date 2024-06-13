@@ -7,6 +7,7 @@ import {Exclude} from "class-transformer";
 import {AppDataSource} from "../data-source";
 import {LogEntry} from "./LogEntry";
 import {PartCombine} from "./PartCombine";
+import {CompoundPart} from "./CompoundPart";
 
 @Entity()
 export class Project {
@@ -76,12 +77,14 @@ export class Project {
             .createQueryBuilder(Project, "project")
             .where("project.name = :name", {name: name})
             .innerJoinAndSelect("project.parts", "part")
-            // .leftJoinAndSelect("part.compounds", "compound")
+            .leftJoinAndSelect("project.compounds", "compound")
+            .leftJoinAndSelect("compound.parts", "compoundPart")
             .getOne();
 
         let logEntries = await AppDataSource.manager
             .createQueryBuilder(LogEntry, "logEntry")
-            .innerJoinAndSelect("logEntry.part", "part")
+            .leftJoinAndSelect("logEntry.part", "part")
+            .leftJoinAndSelect("logEntry.compound", "compound")
             .getMany();
 
         let partCombines = await AppDataSource.manager
@@ -91,11 +94,18 @@ export class Project {
         //Load the log info
         if (project) {
             for (let part of project.parts) {
-                part.logEntries = logEntries.filter(e => e.part.id === part.id);
+                part.logEntries = logEntries.filter(e => e.part !=null).filter(e => e.part.id === part.id);
                 part.part_combines = partCombines.filter(e => e.parent_id === part.id);
             }
 
+            for (let compound of project.compounds) {
+                compound.logEntries = logEntries.filter(e => e.compound != null).filter(e => e.compound.id === compound.id)
+            }
+
         }
+        console.log(logEntries)
+
+        console.log(project.compounds)
 
         return project;
     }

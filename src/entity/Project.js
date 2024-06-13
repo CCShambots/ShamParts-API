@@ -51,11 +51,13 @@ let Project = Project_1 = class Project {
                 .createQueryBuilder(Project_1, "project")
                 .where("project.name = :name", { name: name })
                 .innerJoinAndSelect("project.parts", "part")
-                // .leftJoinAndSelect("part.compounds", "compound")
+                .leftJoinAndSelect("project.compounds", "compound")
+                .leftJoinAndSelect("compound.parts", "compoundPart")
                 .getOne();
             let logEntries = yield data_source_1.AppDataSource.manager
                 .createQueryBuilder(LogEntry_1.LogEntry, "logEntry")
-                .innerJoinAndSelect("logEntry.part", "part")
+                .leftJoinAndSelect("logEntry.part", "part")
+                .leftJoinAndSelect("logEntry.compound", "compound")
                 .getMany();
             let partCombines = yield data_source_1.AppDataSource.manager
                 .createQueryBuilder(PartCombine_1.PartCombine, "partCombine")
@@ -63,10 +65,15 @@ let Project = Project_1 = class Project {
             //Load the log info
             if (project) {
                 for (let part of project.parts) {
-                    part.logEntries = logEntries.filter(e => e.part.id === part.id);
+                    part.logEntries = logEntries.filter(e => e.part != null).filter(e => e.part.id === part.id);
                     part.part_combines = partCombines.filter(e => e.parent_id === part.id);
                 }
+                for (let compound of project.compounds) {
+                    compound.logEntries = logEntries.filter(e => e.compound != null).filter(e => e.compound.id === compound.id);
+                }
             }
+            console.log(logEntries);
+            console.log(project.compounds);
             return project;
         });
     }
