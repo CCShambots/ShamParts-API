@@ -4,7 +4,7 @@ import {
     camDone,
     createCompound, decrementPart, deleteCompound,
     fulfillCompound, incrementPart,
-    unAssignUser, updateCompound,
+    unAssignUser, updateCompound, updateCamInstructions,
     uploadImage
 } from "../controllers/compound.controller";
 
@@ -14,6 +14,7 @@ router.post("/create", createCompound);
 router.patch('/:id/assign', assignUser)
 router.delete('/:id/unAssign', unAssignUser)
 router.post("/:id/uploadImage", uploadImage)
+router.patch("/:id/updateCamInstructions", updateCamInstructions)
 router.patch("/:id/camDone", camDone)
 router.post("/:id/fulfill", fulfillCompound)
 router.patch("/:id/decrementPart", decrementPart)

@@ -83,6 +83,12 @@ export class Part  {
     @Column({default: "other"})
     partType: string
 
+    @Column({default: false})
+    camDone: boolean
+
+    @Column("text", { array: true, default: [], nullable: true})
+    camInstructions: string[]
+
     setAsignee(asignee: User) {
 
         this.asigneeName = asignee.name

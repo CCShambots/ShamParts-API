@@ -148,6 +148,14 @@ __decorate([
     (0, typeorm_1.Column)({ default: "other" }),
     __metadata("design:type", String)
 ], Part.prototype, "partType", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ default: false }),
+    __metadata("design:type", Boolean)
+], Part.prototype, "camDone", void 0);
+__decorate([
+    (0, typeorm_1.Column)("text", { array: true, default: [], nullable: true }),
+    __metadata("design:type", Array)
+], Part.prototype, "camInstructions", void 0);
 Part = Part_1 = __decorate([
     (0, typeorm_1.Entity)()
 ], Part);

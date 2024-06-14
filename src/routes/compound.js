@@ -10,6 +10,7 @@ router.post("/create", compound_controller_1.createCompound);
 router.patch('/:id/assign', compound_controller_1.assignUser);
 router.delete('/:id/unAssign', compound_controller_1.unAssignUser);
 router.post("/:id/uploadImage", compound_controller_1.uploadImage);
+router.patch("/:id/updateCamInstructions", compound_controller_1.updateCamInstructions);
 router.patch("/:id/camDone", compound_controller_1.camDone);
 router.post("/:id/fulfill", compound_controller_1.fulfillCompound);
 router.patch("/:id/decrementPart", compound_controller_1.decrementPart);

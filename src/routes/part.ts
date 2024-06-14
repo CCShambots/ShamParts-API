@@ -1,11 +1,11 @@
 import express from 'express';
 import {
-    assignUser,
+    assignUser, camDone,
     fulfillRequest,
     getPart, getPartTypes,
     loadPartThumbnail, mergeWithOthers,
     reportBreakage,
-    requestAdditional, setDimensions, setPartType, unAssignUser
+    requestAdditional, setDimensions, setPartType, unAssignUser, updateCamInstructions
 } from "../controllers/part.controller";
 
 const router = express.Router();
@@ -21,6 +21,8 @@ router.get('/:id/fulfill', fulfillRequest);
 router.patch('/:id/assign', assignUser)
 router.delete('/:id/unAssign', unAssignUser)
 router.patch("/:id/setDimensions", setDimensions)
+router.patch("/:id/updateCamInstructions", updateCamInstructions)
+router.patch("/:id/camDone", camDone)
 
 router.post("/:id/merge", mergeWithOthers)
 

@@ -196,6 +196,29 @@ export const camDone = async (req:Request, res:Response) => {
     res.status(200).send(instanceToPlain(loaded));
 }
 
+export const updateCamInstructions = async (req:Request, res:Response) => {
+    const user = await User.getUserFromRandomToken(req.headers.token as string)
+
+    if(!user) {
+        return res.status(404).send("User not found");
+    }
+
+    const id = req.params.id;
+
+    //Load the part object from the database with this id
+    const loaded = await Compound.getCompoundFromId(id);
+
+    loaded.camInstructions = req.body.instructions;
+
+    //Generate a log entry
+    LogEntry.createLogEntry("camChange", -1, "CAM Instructions", user.name).addToCompound(loaded);
+
+    await AppDataSource.manager.save(loaded);
+
+    res.status(200).send(instanceToPlain(loaded));
+
+}
+
 export const fulfillCompound = async (req:Request, res:Response) => {
     const user = await User.getUserFromRandomToken(req.headers.token as string)
 

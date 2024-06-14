@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.setPartType = exports.getPartTypes = exports.setDimensions = exports.unAssignUser = exports.assignUser = exports.mergeWithOthers = exports.fulfillRequest = exports.requestAdditional = exports.reportBreakage = exports.loadPartThumbnail = exports.getPart = void 0;
+exports.setPartType = exports.getPartTypes = exports.setDimensions = exports.updateCamInstructions = exports.camDone = exports.unAssignUser = exports.assignUser = exports.mergeWithOthers = exports.fulfillRequest = exports.requestAdditional = exports.reportBreakage = exports.loadPartThumbnail = exports.getPart = void 0;
 const data_source_1 = require("../data-source");
 const Part_1 = require("../entity/Part");
 const Onshape_1 = require("../util/Onshape");
@@ -178,6 +178,36 @@ const unAssignUser = (req, res) => __awaiter(void 0, void 0, void 0, function* (
     res.status(200).send((0, class_transformer_1.instanceToPlain)(loaded));
 });
 exports.unAssignUser = unAssignUser;
+const camDone = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = yield User_1.User.getUserFromRandomToken(req.headers.token);
+    if (!user) {
+        return res.status(404).send("User not found");
+    }
+    const id = req.params.id;
+    //Load the part object from the database with this id
+    const loaded = yield Part_1.Part.getPartFromId(id);
+    loaded.camDone = req.body.done;
+    //Generate a log entry
+    LogEntry_1.LogEntry.createLogEntry("camUpload", -1, "CAM Done: " + req.body.done, user.name).addToPart(loaded);
+    yield data_source_1.AppDataSource.manager.save(loaded);
+    res.status(200).send((0, class_transformer_1.instanceToPlain)(loaded));
+});
+exports.camDone = camDone;
+const updateCamInstructions = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = yield User_1.User.getUserFromRandomToken(req.headers.token);
+    if (!user) {
+        return res.status(404).send("User not found");
+    }
+    const id = req.params.id;
+    //Load the part object from the database with this id
+    const loaded = yield Part_1.Part.getPartFromId(id);
+    loaded.camInstructions = req.body.instructions;
+    //Generate a log entry
+    LogEntry_1.LogEntry.createLogEntry("camChange", -1, "CAM Instructions", user.name).addToPart(loaded);
+    yield data_source_1.AppDataSource.manager.save(loaded);
+    res.status(200).send((0, class_transformer_1.instanceToPlain)(loaded));
+});
+exports.updateCamInstructions = updateCamInstructions;
 const setDimensions = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const user = yield User_1.User.getUserFromRandomToken(req.headers.token);
     if (!user) {

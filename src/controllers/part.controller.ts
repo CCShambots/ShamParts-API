@@ -7,6 +7,7 @@ import {User} from "../entity/User";
 import {instanceToPlain} from "class-transformer";
 import configJson from "../../config.json";
 import {PartCombine} from "../entity/PartCombine";
+import {Compound} from "../entity/Compound";
 
 export const getPart = async (req:Request, res:Response) => {
 
@@ -238,6 +239,51 @@ export const unAssignUser = async (req:Request, res:Response) => {
     await AppDataSource.manager.save(loaded);
 
     res.status(200).send(instanceToPlain(loaded));
+}
+
+export const camDone = async (req:Request, res:Response) => {
+    const user = await User.getUserFromRandomToken(req.headers.token as string)
+
+    if(!user) {
+        return res.status(404).send("User not found");
+    }
+
+    const id = req.params.id;
+
+    //Load the part object from the database with this id
+    const loaded = await Part.getPartFromId(id);
+
+    loaded.camDone = req.body.done;
+
+    //Generate a log entry
+    LogEntry.createLogEntry("camUpload", -1, "CAM Done: " + req.body.done, user.name).addToPart(loaded);
+
+    await AppDataSource.manager.save(loaded);
+
+    res.status(200).send(instanceToPlain(loaded));
+}
+
+export const updateCamInstructions = async (req:Request, res:Response) => {
+    const user = await User.getUserFromRandomToken(req.headers.token as string)
+
+    if(!user) {
+        return res.status(404).send("User not found");
+    }
+
+    const id = req.params.id;
+
+    //Load the part object from the database with this id
+    const loaded = await Part.getPartFromId(id);
+
+    loaded.camInstructions = req.body.instructions;
+
+    //Generate a log entry
+    LogEntry.createLogEntry("camChange", -1, "CAM Instructions", user.name).addToPart(loaded);
+
+    await AppDataSource.manager.save(loaded);
+
+    res.status(200).send(instanceToPlain(loaded));
+
 }
 
 export const setDimensions = async (req:Request, res:Response) => {

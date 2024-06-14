@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteCompound = exports.incrementPart = exports.decrementPart = exports.fulfillCompound = exports.camDone = exports.uploadImage = exports.unAssignUser = exports.assignUser = exports.updateCompound = exports.createCompound = void 0;
+exports.deleteCompound = exports.incrementPart = exports.decrementPart = exports.fulfillCompound = exports.updateCamInstructions = exports.camDone = exports.uploadImage = exports.unAssignUser = exports.assignUser = exports.updateCompound = exports.createCompound = void 0;
 const User_1 = require("../entity/User");
 const Project_1 = require("../entity/Project");
 const Compound_1 = require("../entity/Compound");
@@ -150,6 +150,21 @@ const camDone = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     res.status(200).send((0, class_transformer_1.instanceToPlain)(loaded));
 });
 exports.camDone = camDone;
+const updateCamInstructions = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = yield User_1.User.getUserFromRandomToken(req.headers.token);
+    if (!user) {
+        return res.status(404).send("User not found");
+    }
+    const id = req.params.id;
+    //Load the part object from the database with this id
+    const loaded = yield Compound_1.Compound.getCompoundFromId(id);
+    loaded.camInstructions = req.body.instructions;
+    //Generate a log entry
+    LogEntry_1.LogEntry.createLogEntry("camChange", -1, "CAM Instructions", user.name).addToCompound(loaded);
+    yield data_source_1.AppDataSource.manager.save(loaded);
+    res.status(200).send((0, class_transformer_1.instanceToPlain)(loaded));
+});
+exports.updateCamInstructions = updateCamInstructions;
 const fulfillCompound = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const user = yield User_1.User.getUserFromRandomToken(req.headers.token);
     if (!user) {
