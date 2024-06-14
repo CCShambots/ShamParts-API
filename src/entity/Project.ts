@@ -103,9 +103,6 @@ export class Project {
             }
 
         }
-        console.log(logEntries)
-
-        console.log(project.compounds)
 
         return project;
     }

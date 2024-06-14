@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.uploadImage = exports.unAssignUser = exports.assignUser = exports.createCompound = void 0;
+exports.deleteCompound = exports.incrementPart = exports.decrementPart = exports.fulfillCompound = exports.camDone = exports.uploadImage = exports.unAssignUser = exports.assignUser = exports.updateCompound = exports.createCompound = void 0;
 const User_1 = require("../entity/User");
 const Project_1 = require("../entity/Project");
 const Compound_1 = require("../entity/Compound");
@@ -57,6 +57,38 @@ const createCompound = (req, res) => __awaiter(void 0, void 0, void 0, function*
     res.status(200).send((0, class_transformer_1.instanceToPlain)(compound));
 });
 exports.createCompound = createCompound;
+const updateCompound = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    //Check user is correct
+    //Check if user is involved in this project
+    const user = yield User_1.User.getUserFromRandomToken(req.headers.token);
+    if (!user) {
+        return res.status(404).send("User not found");
+    }
+    const project = yield Project_1.Project.loadProject(req.body.projectName);
+    if (!project) {
+        return res.status(404).send("Project not found");
+    }
+    if (!project.userCanWrite(user)) {
+        return res.status(403).send("You do not have write access to this project");
+    }
+    const id = req.params.id;
+    //Load the part object from the database with this id
+    const loaded = yield Compound_1.Compound.getCompoundFromId(id);
+    loaded.name = req.body.name;
+    loaded.material = req.body.material;
+    loaded.thickness = req.body.thickness;
+    loaded.parts = req.body.parts.map((e) => {
+        const part = new CompoundPart_1.CompoundPart();
+        part.compound = loaded;
+        part.part_id = e.partId;
+        part.quantity = e.quantity;
+        return part;
+    });
+    //save the project
+    yield data_source_1.AppDataSource.manager.save(loaded);
+    res.status(200).send((0, class_transformer_1.instanceToPlain)(loaded));
+});
+exports.updateCompound = updateCompound;
 const assignUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const user = yield User_1.User.getUserFromRandomToken(req.headers.token);
     if (!user) {
@@ -103,4 +135,93 @@ const uploadImage = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     res.status(200).send((0, class_transformer_1.instanceToPlain)(loaded));
 });
 exports.uploadImage = uploadImage;
+const camDone = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = yield User_1.User.getUserFromRandomToken(req.headers.token);
+    if (!user) {
+        return res.status(404).send("User not found");
+    }
+    const id = req.params.id;
+    //Load the part object from the database with this id
+    const loaded = yield Compound_1.Compound.getCompoundFromId(id);
+    loaded.camDone = req.body.done;
+    //Generate a log entry
+    LogEntry_1.LogEntry.createLogEntry("camUpload", -1, "CAM Done: " + req.body.done, user.name).addToCompound(loaded);
+    yield data_source_1.AppDataSource.manager.save(loaded);
+    res.status(200).send((0, class_transformer_1.instanceToPlain)(loaded));
+});
+exports.camDone = camDone;
+const fulfillCompound = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = yield User_1.User.getUserFromRandomToken(req.headers.token);
+    if (!user) {
+        return res.status(404).send("User not found");
+    }
+    const id = req.params.id;
+    //Load the part object from the database with this id
+    const loaded = yield Compound_1.Compound.getCompoundFromId(id);
+    //Remove the asignee
+    loaded.asigneeName = "";
+    loaded.asigneeId = -1;
+    //Generate a log entry
+    LogEntry_1.LogEntry.createLogEntry("fulfill", 1, "Fulfilled", user.name).addToCompound(loaded);
+    //Load all the parts in this compound and fulfill them in the correct quantities
+    for (let part of loaded.parts) {
+        const partLoaded = yield Part_1.Part.getPartFromId(part.part_id);
+        partLoaded.quantityInStock += part.quantity;
+        yield data_source_1.AppDataSource.manager.save(partLoaded);
+    }
+    yield data_source_1.AppDataSource.manager.save(loaded);
+    res.status(200).send((0, class_transformer_1.instanceToPlain)(loaded));
+});
+exports.fulfillCompound = fulfillCompound;
+const decrementPart = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = yield User_1.User.getUserFromRandomToken(req.headers.token);
+    if (!user) {
+        return res.status(404).send("User not found");
+    }
+    const id = req.params.id;
+    //Load the part object from the database with this id
+    const loaded = yield Compound_1.Compound.getCompoundFromId(id);
+    //Load all the parts in this compound and fulfill them in the correct quantities
+    for (let part of loaded.parts) {
+        if (part.part_id == req.body.id) {
+            part.quantity -= 1;
+            if (part.quantity <= 0) {
+                loaded.parts.filter(e => e.id !== part.id);
+            }
+        }
+    }
+    yield data_source_1.AppDataSource.manager.save(loaded);
+    res.status(200).send((0, class_transformer_1.instanceToPlain)(loaded));
+});
+exports.decrementPart = decrementPart;
+const incrementPart = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = yield User_1.User.getUserFromRandomToken(req.headers.token);
+    if (!user) {
+        return res.status(404).send("User not found");
+    }
+    const id = req.params.id;
+    //Load the part object from the database with this id
+    const loaded = yield Compound_1.Compound.getCompoundFromId(id);
+    //Load all the parts in this compound and fulfill them in the correct quantities
+    for (let part of loaded.parts) {
+        if (part.part_id == req.body.id) {
+            part.quantity += 1;
+        }
+    }
+    yield data_source_1.AppDataSource.manager.save(loaded);
+    res.status(200).send((0, class_transformer_1.instanceToPlain)(loaded));
+});
+exports.incrementPart = incrementPart;
+const deleteCompound = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = yield User_1.User.getUserFromRandomToken(req.headers.token);
+    if (!user) {
+        return res.status(404).send("User not found");
+    }
+    const id = req.params.id;
+    //Load the part object from the database with this id
+    const loaded = yield Compound_1.Compound.getCompoundFromId(id);
+    yield data_source_1.AppDataSource.manager.remove(loaded);
+    res.status(200).send((0, class_transformer_1.instanceToPlain)(loaded));
+});
+exports.deleteCompound = deleteCompound;
 //# sourceMappingURL=compound.controller.js.map

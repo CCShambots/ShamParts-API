@@ -72,8 +72,6 @@ let Project = Project_1 = class Project {
                     compound.logEntries = logEntries.filter(e => e.compound != null).filter(e => e.compound.id === compound.id);
                 }
             }
-            console.log(logEntries);
-            console.log(project.compounds);
             return project;
         });
     }

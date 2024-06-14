@@ -62,6 +62,51 @@ export const createCompound = async (req:Request, res:Response) => {
 
 }
 
+export const updateCompound = async (req:Request, res:Response) => {
+    //Check user is correct
+    //Check if user is involved in this project
+    const user = await User.getUserFromRandomToken(req.headers.token as string)
+
+    if (!user) {
+        return res.status(404).send("User not found");
+    }
+
+    const project = await Project.loadProject(req.body.projectName)
+
+    if (!project) {
+        return res.status(404).send("Project not found");
+    }
+
+    if (!project.userCanWrite(user)) {
+        return res.status(403).send("You do not have write access to this project");
+    }
+
+    const id = req.params.id;
+
+    //Load the part object from the database with this id
+    const loaded = await Compound.getCompoundFromId(id);
+
+    loaded.name = req.body.name;
+    loaded.material = req.body.material;
+    loaded.thickness = req.body.thickness;
+
+    loaded.parts = req.body.parts.map((e) => {
+        const part = new CompoundPart()
+        part.compound = loaded;
+        part.part_id = e.partId;
+        part.quantity = e.quantity;
+
+        return part;
+    });
+
+    //save the project
+    await AppDataSource.manager.save(loaded);
+
+    res.status(200).send(instanceToPlain(loaded));
+
+
+}
+
 export const assignUser = async (req:Request, res:Response) => {
     const user = await User.getUserFromRandomToken(req.headers.token as string)
 
@@ -178,6 +223,75 @@ export const fulfillCompound = async (req:Request, res:Response) => {
     }
 
     await AppDataSource.manager.save(loaded);
+
+    res.status(200).send(instanceToPlain(loaded));
+}
+
+export const decrementPart = async (req:Request, res:Response) => {
+    const user = await User.getUserFromRandomToken(req.headers.token as string)
+
+    if(!user) {
+        return res.status(404).send("User not found");
+    }
+
+    const id = req.params.id;
+
+    //Load the part object from the database with this id
+    const loaded = await Compound.getCompoundFromId(id);
+
+    //Load all the parts in this compound and fulfill them in the correct quantities
+    for(let part of loaded.parts) {
+        if(part.part_id == req.body.id) {
+            part.quantity -= 1;
+
+            if(part.quantity <= 0) {
+                loaded.parts.filter(e => e.id !== part.id)
+            }
+        }
+    }
+
+    await AppDataSource.manager.save(loaded);
+
+    res.status(200).send(instanceToPlain(loaded));
+}
+
+export const incrementPart = async (req:Request, res:Response) => {
+    const user = await User.getUserFromRandomToken(req.headers.token as string)
+
+    if(!user) {
+        return res.status(404).send("User not found");
+    }
+
+    const id = req.params.id;
+
+    //Load the part object from the database with this id
+    const loaded = await Compound.getCompoundFromId(id);
+
+    //Load all the parts in this compound and fulfill them in the correct quantities
+    for(let part of loaded.parts) {
+        if(part.part_id == req.body.id) {
+            part.quantity += 1;
+        }
+    }
+
+    await AppDataSource.manager.save(loaded);
+
+    res.status(200).send(instanceToPlain(loaded));
+}
+
+export const deleteCompound = async (req:Request, res:Response) => {
+    const user = await User.getUserFromRandomToken(req.headers.token as string)
+
+    if(!user) {
+        return res.status(404).send("User not found");
+    }
+
+    const id = req.params.id;
+
+    //Load the part object from the database with this id
+    const loaded = await Compound.getCompoundFromId(id);
+
+    await AppDataSource.manager.remove(loaded);
 
     res.status(200).send(instanceToPlain(loaded));
 }
