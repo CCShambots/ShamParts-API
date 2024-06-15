@@ -311,15 +311,21 @@ export const resetPassword = async (req:Request, res:Response) => {
 }
 
 export const deleteUser = async (req:Request, res:Response) => {
-    const user = await User.getUserFromEmail(req.query.email as string)
+    const userToDelete = await User.getUserFromEmail(req.query.email as string)
 
-    if(!user) {
+    const userRequesting = await User.getUserFromRandomToken(req.headers.token as string)
+
+    if(!userToDelete) {
         return res.status(404).send("User not found");
+    } else if(!userRequesting) {
+        return res.status(404).send("Requesting user not found");
     }
 
-    if(user.passwordHash !== stringToHash(req.query.password)) return res.status(403).send("Incorrect Password");
+    if(!userRequesting.roles.includes("admin") || userRequesting.id != userToDelete.id) return res.status(403).send("Unauthorized");
 
-    await AppDataSource.manager.remove(user);
+    if(userToDelete.passwordHash !== stringToHash(req.query.password)) return res.status(403).send("Incorrect Password");
+
+    await AppDataSource.manager.remove(userToDelete);
 
     return res.status(200).send("User deleted");
 }
