@@ -215,6 +215,8 @@ const changeUserName = (req, res) => __awaiter(void 0, void 0, void 0, function*
     if (!user) {
         return res.status(404).send("User not found");
     }
+    if (req.query.name === "")
+        return res.status(400).send("Name cannot be empty");
     user.name = req.query.name;
     yield data_source_1.AppDataSource.manager.save(user);
     return res.status(200).send("Name changed");
@@ -249,13 +251,19 @@ const resetPassword = (req, res) => __awaiter(void 0, void 0, void 0, function* 
 });
 exports.resetPassword = resetPassword;
 const deleteUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const user = yield User_1.User.getUserFromEmail(req.query.email);
-    if (!user) {
+    const userToDelete = yield User_1.User.getUserFromEmail(req.query.email);
+    const userRequesting = yield User_1.User.getUserFromRandomToken(req.headers.token);
+    if (!userToDelete) {
         return res.status(404).send("User not found");
     }
-    if (user.passwordHash !== stringToHash(req.query.password))
+    else if (!userRequesting) {
+        return res.status(404).send("Requesting user not found");
+    }
+    if (!userRequesting.roles.includes("admin") || userRequesting.id != userToDelete.id)
+        return res.status(403).send("Unauthorized");
+    if (!userRequesting.roles.includes("admin") || userToDelete.passwordHash !== stringToHash(req.query.password))
         return res.status(403).send("Incorrect Password");
-    yield data_source_1.AppDataSource.manager.remove(user);
+    yield data_source_1.AppDataSource.manager.remove(userToDelete);
     return res.status(200).send("User deleted");
 });
 exports.deleteUser = deleteUser;
