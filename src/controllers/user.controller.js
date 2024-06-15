@@ -259,10 +259,21 @@ const deleteUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     else if (!userRequesting) {
         return res.status(404).send("Requesting user not found");
     }
-    if (!userRequesting.roles.includes("admin") || userRequesting.id != userToDelete.id)
-        return res.status(403).send("Unauthorized");
-    if (!userRequesting.roles.includes("admin") || userToDelete.passwordHash !== stringToHash(req.query.password))
-        return res.status(403).send("Incorrect Password");
+    if (userRequesting.roles.includes("admin")) {
+    }
+    else {
+        if (req.query.password) {
+            if (userToDelete.passwordHash !== stringToHash(req.query.password)) {
+                return res.status(403).send("Incorrect Password");
+            }
+        }
+        else if (userToDelete.randomToken !== req.query.token) {
+            return res.status(403).send("Incorrect Password");
+        }
+        else if (userRequesting.id !== userToDelete.id) {
+            return res.status(403).send("Unauthorized");
+        }
+    }
     yield data_source_1.AppDataSource.manager.remove(userToDelete);
     return res.status(200).send("User deleted");
 });
