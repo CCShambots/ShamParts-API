@@ -72,7 +72,7 @@ export const createUser = async (req: Request, res: Response) => {
     return res.status(200).send(userPlain);
 }
 
-export const sendEmail = async (req: Request, res: Response) => {
+export const sendVerificationEndpoint = async (req: Request, res: Response) => {
     const user = await User.getUserFromEmail(req.query.email as string)
 
     console.log(req.query.email)
@@ -288,6 +288,21 @@ export const forgotPassword = async (req: Request, res: Response) => {
     console.log(responseStatus);
 
     return res.status(200).send("Email sent");
+}
+
+export const resetPasswordEmail = async (req: Request, res: Response) => {
+    const user = await User.getUserFromEmail(req.body.email as string)
+
+    if (!user) {
+        return res.status(404).send("User not found");
+    }
+
+    let responseStatus = await sendPasswordResetEmail(user.email, user.name, user.randomToken)
+
+    console.log(responseStatus);
+
+    return res.status(200).send("Email sent");
+
 }
 
 export const resetPasswordPage = async (req: Request, res: Response) => {
