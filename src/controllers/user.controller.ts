@@ -262,6 +262,8 @@ export const changeUserName = async (req:Request, res:Response) => {
         return res.status(404).send("User not found");
     }
 
+    if(req.query.name === "") return res.status(400).send("Name cannot be empty");
+
     user.name = req.query.name as string;
 
     await AppDataSource.manager.save(user);
