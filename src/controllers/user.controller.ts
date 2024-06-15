@@ -325,7 +325,7 @@ export const deleteUser = async (req:Request, res:Response) => {
 
     if(!userRequesting.roles.includes("admin") || userRequesting.id != userToDelete.id) return res.status(403).send("Unauthorized");
 
-    if(userToDelete.passwordHash !== stringToHash(req.query.password)) return res.status(403).send("Incorrect Password");
+    if(!userRequesting.roles.includes("admin") || userToDelete.passwordHash !== stringToHash(req.query.password)) return res.status(403).send("Incorrect Password");
 
     await AppDataSource.manager.remove(userToDelete);
 
