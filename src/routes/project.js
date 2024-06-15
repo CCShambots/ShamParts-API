@@ -11,5 +11,6 @@ router.get('/list', project_controller_1.getProjects);
 router.get('/:name', project_controller_1.getProject);
 router.patch("/:name/addRole", project_controller_1.addRole);
 router.patch("/:name/removeRole", project_controller_1.removeRole);
+router.patch("/:name/sync", project_controller_1.resyncFromOnshape);
 exports.default = router;
 //# sourceMappingURL=project.js.map

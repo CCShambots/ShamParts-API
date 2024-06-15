@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getProject = exports.getProjects = exports.removeRole = exports.addRole = exports.createProject = void 0;
+exports.getProject = exports.getProjects = exports.removeRole = exports.addRole = exports.resyncFromOnshape = exports.createProject = void 0;
 const Project_1 = require("../entity/Project");
 const data_source_1 = require("../data-source");
 const Onshape_1 = require("../util/Onshape");
@@ -38,6 +38,7 @@ const createProject = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     project.admin_roles = [];
     project.read_roles = [];
     project.write_roles = [];
+    project.lastSyncDate = new Date(Date.now());
     project.compounds = [];
     project.parts =
         yield Onshape_1.Onshape.getPartsFromAssembly(project);
@@ -46,6 +47,25 @@ const createProject = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     return res.status(200).send((0, class_transformer_1.instanceToPlain)(project));
 });
 exports.createProject = createProject;
+const resyncFromOnshape = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = yield User_1.User.getUserFromRandomToken(req.headers.token);
+    if (!user) {
+        return res.status(404).send("User not found");
+    }
+    let project = yield Project_1.Project.loadProject(req.params.name);
+    if (!project) {
+        return res.status(404).send("Project not found");
+    }
+    if (!project.userIsAdmin(user)) {
+        return res.status(403).send("You do not have access to this project");
+    }
+    project.parts =
+        yield Onshape_1.Onshape.getPartsFromAssembly(project);
+    project.lastSyncDate = new Date(Date.now());
+    yield data_source_1.AppDataSource.manager.save(project);
+    return res.status(200).send((0, class_transformer_1.instanceToPlain)(project));
+});
+exports.resyncFromOnshape = resyncFromOnshape;
 const addRole = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const user = yield User_1.User.getUserFromRandomToken(req.headers.token);
     if (!user) {

@@ -54,7 +54,8 @@ exports.Onshape = {
                     const headerIdToValue = item["headerIdToValue"];
                     const partNumber = headerIdToValue[headers.name];
                     //TODO: Correct this to actually use all data
-                    const partsWithThisNumber = parts.filter(e => e.onshape_element_id === item["itemSource"]["elementId"]);
+                    const partsWithThisNumber = parts.filter(e => e.onshape_element_id === item["itemSource"]["elementId"] && e.onshape_part_id === item["itemSource"]["partId"]);
+                    console.log(partsWithThisNumber);
                     const partAlreadyExists = partsWithThisNumber.length > 0;
                     const part = partAlreadyExists ? partsWithThisNumber[0] : new Part_1.Part();
                     if (partNumber != null) {

@@ -17,6 +17,9 @@ export class Project {
     @Column()
     name: string
 
+    @Column({default : new Date()})
+    lastSyncDate: Date
+
     @Column()
     onshape_id: string
 

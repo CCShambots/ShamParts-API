@@ -4,8 +4,6 @@ import {AppDataSource} from "../data-source";
 import {Onshape} from "../util/Onshape";
 import {User} from "../entity/User";
 import {instanceToPlain} from "class-transformer";
-import {LogEntry} from "../entity/LogEntry";
-import {PartCombine} from "../entity/PartCombine";
 
 let creatingProject = false;
 
@@ -39,6 +37,7 @@ export const createProject = async (req: Request, res: Response) => {
     project.admin_roles = [];
     project.read_roles = [];
     project.write_roles = [];
+    project.lastSyncDate = new Date(Date.now());
 
     project.compounds = [];
 
@@ -53,6 +52,36 @@ export const createProject = async (req: Request, res: Response) => {
 
     return res.status(200).send(instanceToPlain(project));
 
+}
+
+export const resyncFromOnshape = async (req: Request, res: Response) => {
+
+        const user = await User.getUserFromRandomToken(req.headers.token as string)
+
+        if (!user) {
+            return res.status(404).send("User not found");
+        }
+
+        let project = await Project.loadProject(req.params.name);
+
+        if (!project) {
+            return res.status(404).send("Project not found");
+        }
+
+        if (!project.userIsAdmin(user)) {
+            return res.status(403).send("You do not have access to this project");
+        }
+
+        project.parts =
+            await Onshape.getPartsFromAssembly(
+                project
+            );
+
+        project.lastSyncDate = new Date(Date.now());
+
+        await AppDataSource.manager.save(project);
+
+        return res.status(200).send(instanceToPlain(project));
 }
 
 export const addRole = async (req: Request, res: Response) => {

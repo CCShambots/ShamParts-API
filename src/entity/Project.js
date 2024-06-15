@@ -85,6 +85,10 @@ __decorate([
     __metadata("design:type", String)
 ], Project.prototype, "name", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ default: new Date() }),
+    __metadata("design:type", Date)
+], Project.prototype, "lastSyncDate", void 0);
+__decorate([
     (0, typeorm_1.Column)(),
     __metadata("design:type", String)
 ], Project.prototype, "onshape_id", void 0);
