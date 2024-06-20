@@ -116,7 +116,7 @@ __decorate([
     __metadata("design:type", Array)
 ], Part.prototype, "part_combines", void 0);
 __decorate([
-    (0, typeorm_1.ManyToMany)((type) => Compound_1.Compound, compound => compound.parts),
+    (0, typeorm_1.ManyToOne)((type) => Compound_1.Compound, compound => compound.parts),
     (0, class_transformer_1.Exclude)(),
     __metadata("design:type", Array)
 ], Part.prototype, "compounds", void 0);
@@ -141,7 +141,7 @@ __decorate([
     __metadata("design:type", String)
 ], Part.prototype, "asigneeName", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: "int", nullable: true }),
+    (0, typeorm_1.Column)({ type: "int", default: -1 }),
     __metadata("design:type", Number)
 ], Part.prototype, "asigneeId", void 0);
 __decorate([

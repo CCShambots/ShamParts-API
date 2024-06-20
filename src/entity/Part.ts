@@ -1,4 +1,4 @@
-import {Column, Entity, JoinColumn, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn} from "typeorm";
+import {Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn} from "typeorm";
 import {AppDataSource} from "../data-source";
 import {Project} from "./Project";
 import {Exclude} from "class-transformer";
@@ -58,7 +58,7 @@ export class Part  {
     @OneToMany((type) => PartCombine, combine => combine.parent_part, {cascade: true})
     part_combines: PartCombine[]
 
-    @ManyToMany((type) => Compound, compound => compound.parts)
+    @ManyToOne((type) => Compound, compound => compound.parts)
     @Exclude()
     compounds: Compound[]
 
@@ -77,7 +77,7 @@ export class Part  {
     @Column({default: ""})
     asigneeName: string
 
-    @Column({type:"int", nullable: true})
+    @Column({type:"int", default: -1})
     asigneeId: number
 
     @Column({default: "other"})
