@@ -22,7 +22,14 @@ export class Compound {
     @Column()
     thickness: string
 
+    @Column({default: "0"})
+    xDimension: string
+
+    @Column({default: "0"})
+    yDimension: string
+
     @Column()
+    @Exclude()
     thumbnail: string
 
     @Exclude()

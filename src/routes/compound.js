@@ -17,5 +17,7 @@ router.patch("/:id/decrementPart", compound_controller_1.decrementPart);
 router.patch("/:id/incrementPart", compound_controller_1.incrementPart);
 router.delete("/:id/delete", compound_controller_1.deleteCompound);
 router.patch("/:id/update", compound_controller_1.updateCompound);
+router.get("/:id/thumbnail", compound_controller_1.getThumbnail);
+router.patch("/:id/updateDimensions", compound_controller_1.updateDimensions);
 exports.default = router;
 //# sourceMappingURL=compound.js.map

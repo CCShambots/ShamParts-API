@@ -5,7 +5,7 @@ import {
     createCompound, decrementPart, deleteCompound,
     fulfillCompound, incrementPart,
     unAssignUser, updateCompound, updateCamInstructions,
-    uploadImage
+    uploadImage, getThumbnail, updateDimensions
 } from "../controllers/compound.controller";
 
 const router = express.Router();
@@ -21,5 +21,9 @@ router.patch("/:id/decrementPart", decrementPart)
 router.patch("/:id/incrementPart", incrementPart)
 router.delete("/:id/delete", deleteCompound)
 router.patch("/:id/update", updateCompound)
+
+router.get("/:id/thumbnail", getThumbnail)
+
+router.patch("/:id/updateDimensions", updateDimensions)
 
 export default router;

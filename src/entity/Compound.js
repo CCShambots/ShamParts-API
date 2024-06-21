@@ -64,7 +64,16 @@ __decorate([
     __metadata("design:type", String)
 ], Compound.prototype, "thickness", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ default: "0" }),
+    __metadata("design:type", String)
+], Compound.prototype, "xDimension", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ default: "0" }),
+    __metadata("design:type", String)
+], Compound.prototype, "yDimension", void 0);
+__decorate([
     (0, typeorm_1.Column)(),
+    (0, class_transformer_1.Exclude)(),
     __metadata("design:type", String)
 ], Compound.prototype, "thumbnail", void 0);
 __decorate([

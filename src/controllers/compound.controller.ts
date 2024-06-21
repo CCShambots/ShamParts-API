@@ -55,6 +55,8 @@ export const createCompound = async (req:Request, res:Response) => {
     compound.camDone = false;
     compound.camInstructions = [];
 
+    compound.logEntries = [];
+
     //save the project
     await AppDataSource.manager.save(project);
 
@@ -104,6 +106,36 @@ export const updateCompound = async (req:Request, res:Response) => {
 
     res.status(200).send(instanceToPlain(loaded));
 
+
+}
+
+export const updateDimensions = async (req:Request, res:Response) => {
+
+    const id = req.params.id;
+
+    //Load the part object from the database with this id
+    const loaded = await Compound.getCompoundFromId(id);
+
+    loaded.xDimension = req.body.xDimension;
+    loaded.yDimension = req.body.yDimension;
+
+    LogEntry.createLogEntry("dimensionChange", -1, "X: " + req.body.xDimension + " Y: " + req.body.yDimension, "System").addToCompound(loaded);
+
+    //save the project
+    await AppDataSource.manager.save(loaded);
+
+    res.status(200).send(instanceToPlain(loaded));
+
+
+}
+
+export const getThumbnail = async (req:Request, res:Response) => {
+    const id = req.params.id;
+
+    //Load the part object from the database with this id
+    const loaded = await Compound.getCompoundFromId(id);
+
+    res.status(200).send(loaded.thumbnail);
 
 }
 
