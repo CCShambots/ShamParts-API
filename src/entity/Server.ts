@@ -13,6 +13,9 @@ export class Server {
     @Column()
     name: string
 
+    @Column()
+    key: string;
+
     @Column({default: false})
     verified: boolean
 

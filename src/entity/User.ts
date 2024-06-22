@@ -29,6 +29,10 @@ export class User {
     @Column()
     verified: boolean
 
+    isAdmin() {
+        return this.roles.includes("admin");
+    }
+
     static async getUserFromEmail(email:string) {
         return await AppDataSource.manager
             .createQueryBuilder(User, "user")

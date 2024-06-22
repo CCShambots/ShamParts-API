@@ -6,6 +6,8 @@
   "sender_email": "",
   "ip_address": "",
   "name": "",
+  "server_token": "",
+  "server_key":  "",
   "leader_ip": "http://40.233.83.5:3000",
   "admin_user": "",
   "roles": ["admin"],

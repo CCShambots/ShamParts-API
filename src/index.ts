@@ -6,7 +6,8 @@ import * as http from "http";
 import 'reflect-metadata';
 import configJson from "../config.json";
 import {Server} from "./entity/Server";
-import {generateRandomToken} from "./controllers/user.controller";
+import {generateSafeKey, generateSafeRandomToken} from "./controllers/server.controller";
+import * as fs from "node:fs";
 
 
 AppDataSource.initialize()
@@ -20,14 +21,23 @@ AppDataSource.initialize()
             //If this server already exists, just make sure it's name and IP are correct
             let server = await AppDataSource.manager.findOne(Server, {where: {ip: configJson.ip_address}})
 
+            let servers = await AppDataSource.manager.find(Server)
+
             if (!server) {
                 server = new Server();
-                server.random_token = generateRandomToken();
+                server.random_token = generateSafeRandomToken(servers.map(e => e.random_token));
+                server.key = generateSafeKey(servers.map(e => e.key));
             }
 
             server.name = configJson.name
             server.ip = configJson.ip_address
             server.verified = true;
+
+            configJson.server_key = server.key;
+            configJson.server_token = server.random_token;
+
+            // Save the modified configJson back to the config.json file
+            fs.writeFileSync('../config.json', JSON.stringify(configJson, null, 2));
 
             await AppDataSource.manager.save(server)
             console.log("successfully added self to database")
@@ -50,6 +60,15 @@ AppDataSource.initialize()
             if (response.status !== 200) {
                 console.log(`Error registering with host: ${response.status} ${response.statusText}`)
                 process.exit(-1);
+            } else {
+                // Modify configJson here if needed
+                let returned =  await response.json();
+
+                configJson.server_key = returned.key;
+                configJson.server_token = returned.random_token;
+
+                // Save the modified configJson back to the config.json file
+                fs.writeFileSync('../config.json', JSON.stringify(configJson, null, 2));
             }
 
         }
