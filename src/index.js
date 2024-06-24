@@ -66,11 +66,11 @@ data_source_1.AppDataSource.initialize()
         config_json_1.default.server_key = server.key;
         config_json_1.default.server_token = server.random_token;
         // Save the modified configJson back to the config.json file
-        yield fs_1.promises.writeFile('../config.json', JSON.stringify(config_json_1.default, null, 2));
+        yield fs_1.promises.writeFile('config.json', JSON.stringify(config_json_1.default, null, 20));
         yield data_source_1.AppDataSource.manager.save(server);
         console.log("successfully added self to database");
     }
-    else {
+    else if (config_json_1.default.server_key === "") {
         //Register with the host
         console.log(`Attempting to register with master server at: ${config_json_1.default.leader_ip}`);
         let response = yield fetch(`${config_json_1.default.leader_ip}/server/add`, {
@@ -93,10 +93,31 @@ data_source_1.AppDataSource.initialize()
             let returned = yield response.json();
             config_json_1.default.server_key = returned.key;
             config_json_1.default.server_token = returned.random_token;
-            console.log("attempting to save configJson: ", config_json_1.default);
             console.log(process.cwd());
             // Save the modified configJson back to the config.json file
             yield fs_1.promises.writeFile('config.json', JSON.stringify(config_json_1.default, null, 2));
+            console.log(`Successfully registered server with key: ${returned.key}`);
+        }
+    }
+    else {
+        //Just verify that the server is chilling
+        console.log(`Attempting to verify connectivity to leader server... Using key ${config_json_1.default.server_key}`);
+        let response = yield fetch(`${config_json_1.default.leader_ip}/server/check`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                key: config_json_1.default.server_key
+            }),
+            signal: AbortSignal.timeout(5000)
+        });
+        if (response.status === 200) {
+            console.log(`Success verifying; Server key is ${config_json_1.default.server_key}`);
+        }
+        else {
+            console.log(`Error verifying with host: ${response.status} - ${response.statusText}`);
+            process.exit(-1);
         }
     }
     router.use((0, morgan_1.default)("dev"));

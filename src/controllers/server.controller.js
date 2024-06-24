@@ -75,7 +75,7 @@ const getServer = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 });
 exports.getServer = getServer;
 const checkForValidServer = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const server = yield data_source_1.AppDataSource.manager.findOne(Server_1.Server, { where: { key: req.params.key } });
+    const server = yield data_source_1.AppDataSource.manager.findOne(Server_1.Server, { where: { key: req.body.key } });
     if (!server) {
         return res.status(404).send("Server not found");
     }
@@ -85,7 +85,7 @@ exports.checkForValidServer = checkForValidServer;
 const addFollowerServer = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     //Check to see if this server already exists
     const existing = yield data_source_1.AppDataSource.manager.findOne(Server_1.Server, { where: { ip: req.body.ip } });
-    if (existing) {
+    if (existing && req.body.ip.indexOf("localhost") !== -1) {
         return res.status(403).send("Server already exists");
     }
     let servers = yield data_source_1.AppDataSource.manager.find(Server_1.Server);
