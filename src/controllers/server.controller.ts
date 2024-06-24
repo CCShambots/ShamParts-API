@@ -59,7 +59,7 @@ export const getServersFromKeys = async (req: Request, res: Response) => {
     let servers = await AppDataSource.manager
         .createQueryBuilder(Server, "server").getMany();
 
-    servers.filter(e => keys.includes(e.key))
+    servers = servers.filter(e => keys.includes(e.key))
 
     return res.status(200).send(servers.map(e => instanceToPlain(e)));
 }
