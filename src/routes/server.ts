@@ -4,7 +4,7 @@ import {
     checkForValidServer,
     deleteServer,
     denyServer, getServer,
-    getServers,
+    getServers, getServersFromKeys,
     verifyServer
 } from "../controllers/server.controller";
 
@@ -12,6 +12,7 @@ const router = express.Router();
 
 router.get("/list", getServers)
 router.get("/", getServer);
+router.get("/get", getServersFromKeys)
 
 router.post("/add", addFollowerServer)
 

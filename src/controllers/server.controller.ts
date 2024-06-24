@@ -75,7 +75,7 @@ export const getServer = async (req: Request, res: Response) => {
 }
 
 export const checkForValidServer = async (req: Request, res: Response) => {
-    const server = await AppDataSource.manager.findOne(Server, {where: {key: req.params.key}})
+    const server = await AppDataSource.manager.findOne(Server, {where: {key: req.body.key}})
     if (!server) {
         return res.status(404).send("Server not found")
     }

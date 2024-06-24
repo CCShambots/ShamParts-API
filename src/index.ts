@@ -41,7 +41,7 @@ AppDataSource.initialize()
 
             await AppDataSource.manager.save(server)
             console.log("successfully added self to database")
-        } else {
+        } else if(configJson.server_key === "") {
             //Register with the host
             console.log(`Attempting to register with master server at: ${configJson.leader_ip}`)
 
@@ -67,14 +67,35 @@ AppDataSource.initialize()
                 configJson.server_key = returned.key;
                 configJson.server_token = returned.random_token;
 
-                console.log("attempting to save configJson: ", configJson)
-
                 console.log(process.cwd())
 
                 // Save the modified configJson back to the config.json file
                 await fs.writeFile('config.json', JSON.stringify(configJson, null ,2));
+
+                console.log(`Successfully registered server with key: ${returned.key}`)
             }
 
+        } else {
+            //Just verify that the server is chilling
+            console.log(`Attempting to verify connectivity to leader server... Using key ${configJson.server_key}`)
+
+            let response = await fetch(`${configJson.leader_ip}/server/check`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    key: configJson.server_key
+                }),
+                signal: AbortSignal.timeout(5000)
+            })
+
+            if(response.status === 200) {
+                console.log(`Success verifying; Server key is ${configJson.server_key}`)
+            } else {
+                console.log(`Error verifying with host: ${response.status} - ${response.statusText}`)
+                process.exit(-1);
+            }
         }
 
         router.use(morgan("dev"));
