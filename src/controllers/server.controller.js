@@ -62,7 +62,7 @@ const getServersFromKeys = (req, res) => __awaiter(void 0, void 0, void 0, funct
     let keys = req.query.keys;
     let servers = yield data_source_1.AppDataSource.manager
         .createQueryBuilder(Server_1.Server, "server").getMany();
-    servers.filter(e => keys.includes(e.key));
+    servers = servers.filter(e => keys.includes(e.key));
     return res.status(200).send(servers.map(e => (0, class_transformer_1.instanceToPlain)(e)));
 });
 exports.getServersFromKeys = getServersFromKeys;

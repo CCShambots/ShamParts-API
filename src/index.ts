@@ -80,7 +80,7 @@ AppDataSource.initialize()
             console.log(`Attempting to verify connectivity to leader server... Using key ${configJson.server_key}`)
 
             let response = await fetch(`${configJson.leader_ip}/server/check`, {
-                method: "GET",
+                method: "PATCH",
                 headers: {
                     "Content-Type": "application/json"
                 },

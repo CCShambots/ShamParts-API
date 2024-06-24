@@ -86,7 +86,6 @@ export var Onshape = {
                 part.onshape_element_id = item["itemSource"]["elementId"]
                 part.onshape_part_id = item["itemSource"]["partId"]
 
-
                 if(!partAlreadyExists) {
                     part.logEntries = [];
 

@@ -16,7 +16,7 @@ router.get("/get", getServersFromKeys)
 
 router.post("/add", addFollowerServer)
 
-router.get("/verify", verifyServer)
+router.patch("/verify", verifyServer)
 router.get("/check", checkForValidServer)
 router.get("/deny", denyServer)
 router.delete("/delete", deleteServer)
