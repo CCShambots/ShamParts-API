@@ -5,25 +5,7 @@ import {sendPasswordResetEmail, sendVerificationEmail} from "../util/Mailjet";
 import {instanceToPlain} from "class-transformer";
 import configJson from "../../config.json";
 import path from 'path';
-
-function stringToHash(string) {
-
-    let hash = 0;
-
-    if (string.length == 0) return hash.toString();
-
-    for (let i = 0; i < string.length; i++) {
-        let char = string.charCodeAt(i);
-        hash = ((hash << 5) - hash) + char;
-        hash = hash & hash;
-    }
-
-    return hash.toString();
-}
-
-export function generateRandomToken() {
-    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-}
+import {generateRandomToken, generateSafeRandomToken, stringToHash} from "../util/AuthUtil";
 
 export const getRoles = async (req: Request, res: Response) => {
     return res.status(200).send(configJson.roles);
@@ -50,13 +32,8 @@ export const createUser = async (req: Request, res: Response) => {
     user.verified = false;
     if (configJson.admin_user === user.email) user.roles = ['admin'];
     else user.roles = [];
-    //Generate random string for verification
-    user.randomToken = generateRandomToken();
-
-    //Check if this random token already exists on another user and re-roll if necessary
-    while (users.some(e => e.randomToken === user.randomToken)) {
-        user.randomToken = generateRandomToken();
-    }
+    //Generate random token for verification, will automatically ensure it doesn't duplicate
+    user.randomToken = generateSafeRandomToken(users.map(e => e.randomToken));
 
     user.passwordHash = stringToHash(queryParams.password as string);
 

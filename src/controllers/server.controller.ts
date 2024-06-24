@@ -5,35 +5,7 @@ import {instanceToPlain} from "class-transformer";
 import {User} from "../entity/User";
 import {sendServerVerification} from "../util/Mailjet";
 import configJson from "../../config.json";
-
-export function generateSafeRandomToken(disallowedStrings: String[]) {
-
-    let val = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-
-    while (disallowedStrings.includes(val)) {
-        val = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-    }
-    return val;
-}
-
-export function generateSafeKey(disallowedKeys: String[]) {
-    let key = generateAlphanumericKey();
-    while (disallowedKeys.includes(key)) {
-        key = generateAlphanumericKey();
-    }
-    return key;
-
-}
-
-function generateAlphanumericKey() {
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let key = '';
-    for (let i = 0; i < 4; i++) {
-        const randomIndex = Math.floor(Math.random() * characters.length);
-        key += characters[randomIndex];
-    }
-    return key;
-}
+import {generateSafeKey, generateSafeRandomToken} from "../util/AuthUtil";
 
 
 export const getServers = async (req: Request, res: Response) => {
