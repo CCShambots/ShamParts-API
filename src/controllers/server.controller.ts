@@ -88,7 +88,7 @@ export const addFollowerServer = async (req: Request, res: Response) => {
 
     //Check to see if this server already exists
     const existing = await AppDataSource.manager.findOne(Server, {where: {ip: req.body.ip}})
-    if (existing) {
+    if (existing && req.body.ip.indexOf("localhost") !== -1) {
         return res.status(403).send("Server already exists")
     }
 
