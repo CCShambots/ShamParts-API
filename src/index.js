@@ -103,7 +103,7 @@ data_source_1.AppDataSource.initialize()
         //Just verify that the server is chilling
         console.log(`Attempting to verify connectivity to leader server... Using key ${config_json_1.default.server_key}`);
         let response = yield fetch(`${config_json_1.default.leader_ip}/server/check`, {
-            method: "GET",
+            method: "PATCH",
             headers: {
                 "Content-Type": "application/json"
             },
