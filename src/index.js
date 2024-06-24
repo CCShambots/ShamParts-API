@@ -43,7 +43,8 @@ const http = __importStar(require("http"));
 require("reflect-metadata");
 const config_json_1 = __importDefault(require("../config.json"));
 const Server_1 = require("./entity/Server");
-const user_controller_1 = require("./controllers/user.controller");
+const server_controller_1 = require("./controllers/server.controller");
+const fs_1 = require("fs"); // Use the promises API from fs module
 data_source_1.AppDataSource.initialize()
     .then(() => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
@@ -53,13 +54,19 @@ data_source_1.AppDataSource.initialize()
         console.log("Detected this as leader server... instantiating self in database");
         //If this server already exists, just make sure it's name and IP are correct
         let server = yield data_source_1.AppDataSource.manager.findOne(Server_1.Server, { where: { ip: config_json_1.default.ip_address } });
+        let servers = yield data_source_1.AppDataSource.manager.find(Server_1.Server);
         if (!server) {
             server = new Server_1.Server();
-            server.random_token = (0, user_controller_1.generateRandomToken)();
+            server.random_token = (0, server_controller_1.generateSafeRandomToken)(servers.map(e => e.random_token));
+            server.key = (0, server_controller_1.generateSafeKey)(servers.map(e => e.key));
         }
         server.name = config_json_1.default.name;
         server.ip = config_json_1.default.ip_address;
         server.verified = true;
+        config_json_1.default.server_key = server.key;
+        config_json_1.default.server_token = server.random_token;
+        // Save the modified configJson back to the config.json file
+        yield fs_1.promises.writeFile('../config.json', JSON.stringify(config_json_1.default, null, 2));
         yield data_source_1.AppDataSource.manager.save(server);
         console.log("successfully added self to database");
     }
@@ -78,8 +85,18 @@ data_source_1.AppDataSource.initialize()
             signal: AbortSignal.timeout(5000)
         });
         if (response.status !== 200) {
-            console.log(`Error registering with host: ${response.status} ${response.statusText}`);
+            console.log(`Error registering with host: ${response.status} - ${response.statusText}`);
             process.exit(-1);
+        }
+        else {
+            // Modify configJson here if needed
+            let returned = yield response.json();
+            config_json_1.default.server_key = returned.key;
+            config_json_1.default.server_token = returned.random_token;
+            console.log("attempting to save configJson: ", config_json_1.default);
+            console.log(process.cwd());
+            // Save the modified configJson back to the config.json file
+            yield fs_1.promises.writeFile('config.json', JSON.stringify(config_json_1.default, null, 2));
         }
     }
     router.use((0, morgan_1.default)("dev"));

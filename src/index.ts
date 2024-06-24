@@ -7,7 +7,7 @@ import 'reflect-metadata';
 import configJson from "../config.json";
 import {Server} from "./entity/Server";
 import {generateSafeKey, generateSafeRandomToken} from "./controllers/server.controller";
-import * as fs from "node:fs";
+import { promises as fs } from 'fs'; // Use the promises API from fs module
 
 
 AppDataSource.initialize()
@@ -37,7 +37,7 @@ AppDataSource.initialize()
             configJson.server_token = server.random_token;
 
             // Save the modified configJson back to the config.json file
-            fs.writeFileSync('../config.json', JSON.stringify(configJson, null, 2));
+            await fs.writeFile('../config.json', JSON.stringify(configJson, null, 20));
 
             await AppDataSource.manager.save(server)
             console.log("successfully added self to database")
@@ -58,7 +58,7 @@ AppDataSource.initialize()
             })
 
             if (response.status !== 200) {
-                console.log(`Error registering with host: ${response.status} ${response.statusText}`)
+                console.log(`Error registering with host: ${response.status} - ${response.statusText}`)
                 process.exit(-1);
             } else {
                 // Modify configJson here if needed
@@ -67,8 +67,12 @@ AppDataSource.initialize()
                 configJson.server_key = returned.key;
                 configJson.server_token = returned.random_token;
 
+                console.log("attempting to save configJson: ", configJson)
+
+                console.log(process.cwd())
+
                 // Save the modified configJson back to the config.json file
-                fs.writeFileSync('../config.json', JSON.stringify(configJson, null, 2));
+                await fs.writeFile('config.json', JSON.stringify(configJson, null ,2));
             }
 
         }

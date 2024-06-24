@@ -24,6 +24,9 @@ const typeorm_1 = require("typeorm");
 const class_transformer_1 = require("class-transformer");
 const data_source_1 = require("../data-source");
 let User = User_1 = class User {
+    isAdmin() {
+        return this.roles.includes("admin");
+    }
     static getUserFromEmail(email) {
         return __awaiter(this, void 0, void 0, function* () {
             return yield data_source_1.AppDataSource.manager

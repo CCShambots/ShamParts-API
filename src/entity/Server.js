@@ -27,6 +27,10 @@ __decorate([
     __metadata("design:type", String)
 ], Server.prototype, "name", void 0);
 __decorate([
+    (0, typeorm_1.Column)(),
+    __metadata("design:type", String)
+], Server.prototype, "key", void 0);
+__decorate([
     (0, typeorm_1.Column)({ default: false }),
     __metadata("design:type", Boolean)
 ], Server.prototype, "verified", void 0);

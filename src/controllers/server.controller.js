@@ -12,32 +12,92 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteServer = exports.denyServer = exports.verifyServer = exports.addFollowerServer = exports.getServers = void 0;
+exports.deleteServer = exports.denyServer = exports.verifyServer = exports.addFollowerServer = exports.checkForValidServer = exports.getServer = exports.getServersFromKeys = exports.getServers = exports.generateSafeKey = exports.generateSafeRandomToken = void 0;
 const Server_1 = require("../entity/Server");
 const data_source_1 = require("../data-source");
 const class_transformer_1 = require("class-transformer");
 const User_1 = require("../entity/User");
 const Mailjet_1 = require("../util/Mailjet");
 const config_json_1 = __importDefault(require("../../config.json"));
-const user_controller_1 = require("./user.controller");
+function generateSafeRandomToken(disallowedStrings) {
+    let val = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    while (disallowedStrings.includes(val)) {
+        val = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    }
+    return val;
+}
+exports.generateSafeRandomToken = generateSafeRandomToken;
+function generateSafeKey(disallowedKeys) {
+    let key = generateAlphanumericKey();
+    while (disallowedKeys.includes(key)) {
+        key = generateAlphanumericKey();
+    }
+    return key;
+}
+exports.generateSafeKey = generateSafeKey;
+function generateAlphanumericKey() {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let key = '';
+    for (let i = 0; i < 4; i++) {
+        const randomIndex = Math.floor(Math.random() * characters.length);
+        key += characters[randomIndex];
+    }
+    return key;
+}
 const getServers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = yield User_1.User.getUserFromRandomToken(req.headers.token);
+    if (!user) {
+        return res.status(404).send("User not found");
+    }
+    else if (!user.isAdmin()) {
+        return res.status(403).send("You must be an admin to do this");
+    }
     let servers = yield data_source_1.AppDataSource.manager.find(Server_1.Server);
     servers = servers.filter(e => e.verified);
     const plainServers = servers.map(e => (0, class_transformer_1.instanceToPlain)(e));
     return res.status(200).send(plainServers);
 });
 exports.getServers = getServers;
+const getServersFromKeys = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    let keys = req.query.keys;
+    let servers = yield data_source_1.AppDataSource.manager
+        .createQueryBuilder(Server_1.Server, "server").getMany();
+    servers.filter(e => keys.includes(e.key));
+    return res.status(200).send(servers.map(e => (0, class_transformer_1.instanceToPlain)(e)));
+});
+exports.getServersFromKeys = getServersFromKeys;
+const getServer = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const server = yield data_source_1.AppDataSource.manager.findOne(Server_1.Server, { where: { key: req.params.key } });
+    if (!server) {
+        return res.status(404).send("Server not found");
+    }
+    return res.status(200).send((0, class_transformer_1.instanceToPlain)(server));
+});
+exports.getServer = getServer;
+const checkForValidServer = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const server = yield data_source_1.AppDataSource.manager.findOne(Server_1.Server, { where: { key: req.params.key } });
+    if (!server) {
+        return res.status(404).send("Server not found");
+    }
+    return res.status(200).send(server.verified);
+});
+exports.checkForValidServer = checkForValidServer;
 const addFollowerServer = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     //Check to see if this server already exists
     const existing = yield data_source_1.AppDataSource.manager.findOne(Server_1.Server, { where: { ip: req.body.ip } });
     if (existing) {
-        return res.status(200).send("Server already exists");
+        return res.status(403).send("Server already exists");
+    }
+    let servers = yield data_source_1.AppDataSource.manager.find(Server_1.Server);
+    if (servers.filter(e => e.name === req.body.name).length > 0) {
+        return res.status(403).send("Server name already exists");
     }
     const server = new Server_1.Server();
     server.name = req.body.name;
     server.ip = req.body.ip;
     server.verified = false;
-    server.random_token = (0, user_controller_1.generateRandomToken)();
+    server.key = generateSafeKey(servers.map(e => e.key));
+    server.random_token = generateSafeRandomToken(servers.map(e => e.random_token));
     yield data_source_1.AppDataSource.manager.save(server);
     //Send verificaiton email
     yield (0, Mailjet_1.sendServerVerification)(config_json_1.default.admin_user, server.name, server.random_token);
