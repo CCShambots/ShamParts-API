@@ -37,7 +37,7 @@ AppDataSource.initialize()
             configJson.server_token = server.random_token;
 
             // Save the modified configJson back to the config.json file
-            await fs.writeFile('../config.json', JSON.stringify(configJson, null, 20));
+            await fs.writeFile('config.json', JSON.stringify(configJson, null, 20));
 
             await AppDataSource.manager.save(server)
             console.log("successfully added self to database")
