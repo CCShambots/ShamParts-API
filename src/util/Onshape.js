@@ -17,6 +17,7 @@ const OnshapeDocument_1 = require("./OnshapeDocument");
 const config_json_1 = __importDefault(require("../../config.json"));
 const OnshapeAssembly_1 = require("./OnshapeAssembly");
 const Part_1 = require("../entity/Part");
+const data_source_1 = require("../data-source");
 function fetchFromOnshape(url) {
     // console.log(`Making call to: https://cad.onshape.com/api/v6/${url}`)
     return fetch(`https://cad.onshape.com/api/v6/${url}`, {
@@ -50,7 +51,7 @@ exports.Onshape = {
                 //load existing parts
                 const parts = yield Part_1.Part.getPartsInDB();
                 const headers = exports.Onshape.getHeaders(json);
-                return yield Promise.all(json.rows.map((item) => __awaiter(this, void 0, void 0, function* () {
+                const partsFound = yield Promise.all(json.rows.map((item) => __awaiter(this, void 0, void 0, function* () {
                     const headerIdToValue = item["headerIdToValue"];
                     const partNumber = headerIdToValue[headers.name];
                     //TODO: Correct this to actually use all data
@@ -99,6 +100,11 @@ exports.Onshape = {
                     }
                     return part;
                 })));
+                let partsToDelete = parts.filter(e => e.project === project && !partsFound.includes(e));
+                partsToDelete.forEach(e => {
+                    data_source_1.AppDataSource.manager.remove(e);
+                });
+                return partsFound;
             }
             catch (e_1) {
                 console.log(e_1);

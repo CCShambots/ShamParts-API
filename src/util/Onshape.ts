@@ -4,6 +4,7 @@ import {OnshapeAssembly} from "./OnshapeAssembly";
 import {Part} from "../entity/Part";
 import {Project} from "../entity/Project";
 import Fraction from "fraction.js";
+import {AppDataSource} from "../data-source";
 
 function fetchFromOnshape(url: string) {
     // console.log(`Making call to: https://cad.onshape.com/api/v6/${url}`)
@@ -50,7 +51,7 @@ export var Onshape = {
             const parts = await Part.getPartsInDB();
 
             const headers = Onshape.getHeaders(json);
-            return await Promise.all(json.rows.map(async (item: any) => {
+            const partsFound = await Promise.all(json.rows.map(async (item: any) => {
 
                 const headerIdToValue = item["headerIdToValue"];
 
@@ -114,6 +115,14 @@ export var Onshape = {
 
                 return part;
             }));
+
+            let partsToDelete=  parts.filter(e => e.project === project && !partsFound.includes(e))
+
+            partsToDelete.forEach(e => {
+                AppDataSource.manager.remove(e);
+            })
+
+            return partsFound;
         } catch (e_1) {
             console.log(e_1);
         }
