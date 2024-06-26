@@ -12,28 +12,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteUser = exports.resetPassword = exports.resetPasswordPage = exports.resetPasswordEmail = exports.forgotPassword = exports.changeUserName = exports.getUserFromToken = exports.getUser = exports.getUsers = exports.removeUserRole = exports.setUserRoles = exports.addUserRole = exports.cancelUser = exports.authenticateUser = exports.verifyUser = exports.sendVerificationEndpoint = exports.createUser = exports.getRoles = exports.generateRandomToken = void 0;
+exports.deleteUser = exports.resetPassword = exports.resetPasswordPage = exports.resetPasswordEmail = exports.forgotPassword = exports.changeUserName = exports.getUserFromToken = exports.getUser = exports.getUsers = exports.removeUserRole = exports.setUserRoles = exports.addUserRole = exports.cancelUser = exports.authenticateUser = exports.verifyUser = exports.sendVerificationEndpoint = exports.createUser = exports.getRoles = void 0;
 const data_source_1 = require("../data-source");
 const User_1 = require("../entity/User");
 const Mailjet_1 = require("../util/Mailjet");
 const class_transformer_1 = require("class-transformer");
 const config_json_1 = __importDefault(require("../../config.json"));
 const path_1 = __importDefault(require("path"));
-function stringToHash(string) {
-    let hash = 0;
-    if (string.length == 0)
-        return hash.toString();
-    for (let i = 0; i < string.length; i++) {
-        let char = string.charCodeAt(i);
-        hash = ((hash << 5) - hash) + char;
-        hash = hash & hash;
-    }
-    return hash.toString();
-}
-function generateRandomToken() {
-    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-}
-exports.generateRandomToken = generateRandomToken;
+const AuthUtil_1 = require("../util/AuthUtil");
 const getRoles = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     return res.status(200).send(config_json_1.default.roles);
 });
@@ -56,13 +42,9 @@ const createUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         user.roles = ['admin'];
     else
         user.roles = [];
-    //Generate random string for verification
-    user.randomToken = generateRandomToken();
-    //Check if this random token already exists on another user and re-roll if necessary
-    while (users.some(e => e.randomToken === user.randomToken)) {
-        user.randomToken = generateRandomToken();
-    }
-    user.passwordHash = stringToHash(queryParams.password);
+    //Generate random token for verification, will automatically ensure it doesn't duplicate
+    user.randomToken = (0, AuthUtil_1.generateSafeRandomToken)(users.map(e => e.randomToken));
+    user.passwordHash = (0, AuthUtil_1.stringToHash)(queryParams.password);
     //Send verification email to the user
     let responseStatus = yield (0, Mailjet_1.sendVerificationEmail)(user.email, user.name, user.randomToken);
     console.log(responseStatus);
@@ -100,7 +82,7 @@ const authenticateUser = (req, res) => __awaiter(void 0, void 0, void 0, functio
     if (!user) {
         return res.status(404).send("User not found");
     }
-    if (user.passwordHash !== stringToHash(req.query.password))
+    if (user.passwordHash !== (0, AuthUtil_1.stringToHash)(req.query.password))
         return res.status(403).send("Invalid token");
     if (!user.verified)
         return res.status(403).send("User not verified");
@@ -255,7 +237,7 @@ const resetPassword = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     if (!user) {
         return res.status(404).send("User not found");
     }
-    user.passwordHash = stringToHash(req.query.password);
+    user.passwordHash = (0, AuthUtil_1.stringToHash)(req.query.password);
     yield data_source_1.AppDataSource.manager.save(user);
     return res.status(200).send("Password reset");
 });
@@ -273,7 +255,7 @@ const deleteUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     }
     else {
         if (req.query.password) {
-            if (userToDelete.passwordHash !== stringToHash(req.query.password)) {
+            if (userToDelete.passwordHash !== (0, AuthUtil_1.stringToHash)(req.query.password)) {
                 return res.status(403).send("Incorrect Password");
             }
         }

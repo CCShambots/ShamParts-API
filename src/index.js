@@ -43,8 +43,8 @@ const http = __importStar(require("http"));
 require("reflect-metadata");
 const config_json_1 = __importDefault(require("../config.json"));
 const Server_1 = require("./entity/Server");
-const server_controller_1 = require("./controllers/server.controller");
-const fs_1 = require("fs"); // Use the promises API from fs module
+const fs_1 = require("fs");
+const AuthUtil_1 = require("./util/AuthUtil"); // Use the promises API from fs module
 data_source_1.AppDataSource.initialize()
     .then(() => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
@@ -57,8 +57,8 @@ data_source_1.AppDataSource.initialize()
         let servers = yield data_source_1.AppDataSource.manager.find(Server_1.Server);
         if (!server) {
             server = new Server_1.Server();
-            server.random_token = (0, server_controller_1.generateSafeRandomToken)(servers.map(e => e.random_token));
-            server.key = (0, server_controller_1.generateSafeKey)(servers.map(e => e.key));
+            server.random_token = (0, AuthUtil_1.generateSafeRandomToken)(servers.map(e => e.random_token));
+            server.key = (0, AuthUtil_1.generateSafeKey)(servers.map(e => e.key));
         }
         server.name = config_json_1.default.name;
         server.ip = config_json_1.default.ip_address;

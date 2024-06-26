@@ -6,8 +6,8 @@ import * as http from "http";
 import 'reflect-metadata';
 import configJson from "../config.json";
 import {Server} from "./entity/Server";
-import {generateSafeKey, generateSafeRandomToken} from "./controllers/server.controller";
-import { promises as fs } from 'fs'; // Use the promises API from fs module
+import { promises as fs } from 'fs';
+import {generateSafeKey, generateSafeRandomToken} from "./util/AuthUtil"; // Use the promises API from fs module
 
 
 AppDataSource.initialize()
