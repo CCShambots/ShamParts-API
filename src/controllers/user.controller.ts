@@ -62,7 +62,7 @@ export const sendNotif = async (req: Request, res: Response) => {
             body: req.body.body
         }
     }
-    
+
     try {
         const response = await firebase.messaging().sendEachForMulticast(message)
         console.log("Message result:", response)

@@ -17,7 +17,7 @@ import {
     getRoles,
     setUserRoles,
     sendVerificationEndpoint,
-    resetPasswordEmail, testNotif, sendNotif
+    resetPasswordEmail, testNotif, sendNotif, logOutUser
 } from "../controllers/user.controller";
 
 
@@ -38,6 +38,7 @@ router.post("/create", createUser)
 router.post("/sendVerificationEmail", sendVerificationEndpoint)
 router.get("/verify", verifyUser)
 router.get("/authenticate", authenticateUser)
+router.delete("/logout", logOutUser)
 router.get("/cancel", cancelUser)
 router.get("/users", getUsers)
 
