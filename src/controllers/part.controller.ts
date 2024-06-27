@@ -8,6 +8,7 @@ import {instanceToPlain} from "class-transformer";
 import configJson from "../../config.json";
 import {PartCombine} from "../entity/PartCombine";
 import {Compound} from "../entity/Compound";
+import {sendNotification} from "../notifications/NotificationUtil";
 
 export const getPart = async (req:Request, res:Response) => {
 
@@ -213,6 +214,8 @@ export const assignUser = async (req:Request, res:Response) => {
     LogEntry.createLogEntry("assign", -1, asignee.name, user.name).addToPart(loaded);
 
     loaded.setAsignee(asignee);
+
+    sendNotification(asignee.firebase_tokens, "Part Assigned", `You have been assigned part ${loaded.number}`);
 
     await AppDataSource.manager.save(loaded);
 

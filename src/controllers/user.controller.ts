@@ -7,6 +7,7 @@ import configJson from "../../config.json";
 import path from 'path';
 import {generateRandomToken, generateSafeRandomToken, stringToHash} from "../util/AuthUtil";
 import {firebase} from "../index";
+import {Server} from "../entity/Server";
 
 export const getRoles = async (req: Request, res: Response) => {
     return res.status(200).send(configJson.roles);
@@ -19,27 +20,51 @@ export const testNotif = async (req: Request, res: Response) => {
         return res.status(404).send("User not found");
     }
 
-    for(let token of user.firebase_tokens) {
-        let message = {
-            token: token,
-            notification: {
-                title: "Test Notification",
-                body: "This is a test notification"
-            }
+    let message = {
+        tokens: [user.firebase_tokens],
+        notification: {
+            title: "Test Notification",
+            body: "This is a test notification"
         }
+    }
 
-        try {
-            const response = await firebase.messaging().send(message)
-            console.log("Successfully sent message:", response)
-        } catch {
-            return res.status(500).send("Error sending notification");
-        }
+    try {
+        const response = await firebase.messaging().sendEachForMulticast(message)
+        console.log("Successfully sent message:", response)
+    } catch {
+        return res.status(500).send("Error sending notification");
     }
 
 
 
     return res.status(200).send("Email sent");
 
+}
+
+export const sendNotif = async (req: Request, res: Response) => {
+
+    const server = await AppDataSource.manager.findOne(Server, {where: {random_token: req.body.server_token as string}})
+
+    if(server === null) {
+        return res.status(404).send("Server not found");
+    }
+
+    let message = {
+        tokens: [req.body.firebase_tokens],
+        notification: {
+            title: req.body.title,
+            body: req.body.body
+        }
+    }
+
+    try {
+        const response = await firebase.messaging().sendEachForMulticast(message)
+        console.log("Successfully sent message:", response)
+    } catch {
+        return res.status(500).send("Error sending notification");
+    }
+
+    return res.status(200).send("Sent Notification Successfully");
 }
 
 export const createUser = async (req: Request, res: Response) => {
