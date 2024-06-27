@@ -12,6 +12,7 @@ export function sendNotification(tokens:string[], title:string, body:string) {
                 "firebase_tokens": tokens,
                 "title": title,
                 "body": body,
+                "server_token": configJson.server_token
             })
         }
     )

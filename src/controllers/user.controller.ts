@@ -42,6 +42,11 @@ export const testNotif = async (req: Request, res: Response) => {
 }
 
 export const sendNotif = async (req: Request, res: Response) => {
+    console.log(req.body)
+    console.log(req.body.server_token)
+    console.log(req.body.firebase_tokens)
+    console.log(req.body.title)
+    console.log(req.body.body)
 
     const server = await AppDataSource.manager.findOne(Server, {where: {random_token: req.body.server_token as string}})
 
@@ -59,7 +64,7 @@ export const sendNotif = async (req: Request, res: Response) => {
 
     try {
         const response = await firebase.messaging().sendEachForMulticast(message)
-        console.log("Successfully sent message:", response)
+        console.log("Message result:", response)
     } catch {
         return res.status(500).send("Error sending notification");
     }
