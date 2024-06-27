@@ -15,6 +15,10 @@ export class User {
     @Column()
     email: string
 
+    @Column("text", {array: true, nullable: true})
+    @Exclude()
+    firebase_tokens: string[]
+
     @Exclude()
     @Column()
     passwordHash: string

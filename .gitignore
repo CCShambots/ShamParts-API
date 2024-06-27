@@ -132,3 +132,4 @@ dist
 .idea/
 
 config.json
+firebase.config.json

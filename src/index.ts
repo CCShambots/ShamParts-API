@@ -10,6 +10,15 @@ import { promises as fs } from 'fs';
 import {generateSafeKey, generateSafeRandomToken} from "./util/AuthUtil"; // Use the promises API from fs module
 
 
+const firebase = require("firebase-admin")
+const serviceAccount = require("../firebase.config.json")
+
+firebase.initializeApp({
+    credential: firebase.credential.cert(serviceAccount)
+})
+
+module.exports = {firebase}
+
 AppDataSource.initialize()
     .then(async () => {
         const router: Express = express();

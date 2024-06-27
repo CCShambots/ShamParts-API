@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteUser = exports.resetPassword = exports.resetPasswordPage = exports.resetPasswordEmail = exports.forgotPassword = exports.changeUserName = exports.getUserFromToken = exports.getUser = exports.getUsers = exports.removeUserRole = exports.setUserRoles = exports.addUserRole = exports.cancelUser = exports.authenticateUser = exports.verifyUser = exports.sendVerificationEndpoint = exports.createUser = exports.getRoles = void 0;
+exports.deleteUser = exports.resetPassword = exports.resetPasswordPage = exports.resetPasswordEmail = exports.forgotPassword = exports.changeUserName = exports.getUserFromToken = exports.getUser = exports.getUsers = exports.removeUserRole = exports.setUserRoles = exports.addUserRole = exports.cancelUser = exports.logOutUser = exports.authenticateUser = exports.verifyUser = exports.sendVerificationEndpoint = exports.createUser = exports.getRoles = void 0;
 const data_source_1 = require("../data-source");
 const User_1 = require("../entity/User");
 const Mailjet_1 = require("../util/Mailjet");
@@ -45,6 +45,10 @@ const createUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     //Generate random token for verification, will automatically ensure it doesn't duplicate
     user.randomToken = (0, AuthUtil_1.generateSafeRandomToken)(users.map(e => e.randomToken));
     user.passwordHash = (0, AuthUtil_1.stringToHash)(queryParams.password);
+    user.firebase_tokens = [];
+    if (req.query.firebase_token !== "none") {
+        user.firebase_tokens.push(queryParams.firebase_token);
+    }
     //Send verification email to the user
     let responseStatus = yield (0, Mailjet_1.sendVerificationEmail)(user.email, user.name, user.randomToken);
     console.log(responseStatus);
@@ -86,9 +90,30 @@ const authenticateUser = (req, res) => __awaiter(void 0, void 0, void 0, functio
         return res.status(403).send("Invalid token");
     if (!user.verified)
         return res.status(403).send("User not verified");
+    if (user.firebase_tokens == null) {
+        user.firebase_tokens = [];
+    }
+    if (!user.firebase_tokens.includes(req.query.firebase_token) && req.query.firebase_token !== "none") {
+        user.firebase_tokens.push(req.query.firebase_token);
+    }
+    yield data_source_1.AppDataSource.manager.save(user);
     return res.status(200).send(user);
 });
 exports.authenticateUser = authenticateUser;
+const logOutUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = yield User_1.User.getUserFromRandomToken(req.query.token);
+    if (!user) {
+        //Return an error message (could not find user to verify)
+        return res.status(404).send("User not found");
+    }
+    if (user.firebase_tokens != null) {
+        user.firebase_tokens = user.firebase_tokens.filter(e => e !== req.query.firebase_token);
+    }
+    yield data_source_1.AppDataSource.manager.save(user);
+    //Return a success message (user verified)
+    return res.status(200).send("User logged out");
+});
+exports.logOutUser = logOutUser;
 const cancelUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const user = yield User_1.User.getUserFromRandomToken(req.query.token);
     if (!user) {

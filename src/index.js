@@ -45,6 +45,12 @@ const config_json_1 = __importDefault(require("../config.json"));
 const Server_1 = require("./entity/Server");
 const fs_1 = require("fs");
 const AuthUtil_1 = require("./util/AuthUtil"); // Use the promises API from fs module
+const firebase = require("firebase-admin");
+const serviceAccount = require("../firebase.config.json");
+firebase.initializeApp({
+    credential: firebase.credential.cert(serviceAccount)
+});
+module.exports = { firebase };
 data_source_1.AppDataSource.initialize()
     .then(() => __awaiter(void 0, void 0, void 0, function* () {
     var _a;

@@ -37,6 +37,11 @@ export const createUser = async (req: Request, res: Response) => {
 
     user.passwordHash = stringToHash(queryParams.password as string);
 
+    user.firebase_tokens = [];
+    if(req.query.firebase_token !== "none") {
+        user.firebase_tokens.push(queryParams.firebase_token as string);
+    }
+
     //Send verification email to the user
     let responseStatus = await sendVerificationEmail(user.email, user.name, user.randomToken)
 
@@ -93,7 +98,35 @@ export const authenticateUser = async (req: Request, res: Response) => {
 
     if (!user.verified) return res.status(403).send("User not verified");
 
+    if(user.firebase_tokens == null) {
+        user.firebase_tokens = [];
+    }
+
+    if(!user.firebase_tokens.includes(req.query.firebase_token as string) && req.query.firebase_token !== "none") {
+        user.firebase_tokens.push(req.query.firebase_token as string);
+    }
+
+    await AppDataSource.manager.save(user);
+
     return res.status(200).send(user);
+}
+
+export const logOutUser = async (req: Request, res: Response) => {
+    const user = await User.getUserFromRandomToken(req.query.token as string)
+
+    if (!user) {
+        //Return an error message (could not find user to verify)
+        return res.status(404).send("User not found");
+    }
+
+    if(user.firebase_tokens != null) {
+        user.firebase_tokens = user.firebase_tokens.filter(e => e !== req.query.firebase_token);
+    }
+
+    await AppDataSource.manager.save(user);
+
+    //Return a success message (user verified)
+    return res.status(200).send("User logged out");
 }
 
 export const cancelUser = async (req: Request, res: Response) => {
