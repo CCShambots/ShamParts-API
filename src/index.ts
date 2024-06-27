@@ -8,16 +8,19 @@ import configJson from "../config.json";
 import {Server} from "./entity/Server";
 import { promises as fs } from 'fs';
 import {generateSafeKey, generateSafeRandomToken} from "./util/AuthUtil"; // Use the promises API from fs module
+export const firebase = require("firebase-admin")
+
+try {
+    const serviceAccount = require("../firebase.config.json")
+
+    firebase.initializeApp({
+        credential: firebase.credential.cert(serviceAccount)
+    })
 
 
-const firebase = require("firebase-admin")
-const serviceAccount = require("../firebase.config.json")
-
-firebase.initializeApp({
-    credential: firebase.credential.cert(serviceAccount)
-})
-
-module.exports = {firebase}
+} catch (e) {
+    console.log("Firebase config not found, skipping firebase initialization. If this is not the main server, this is normal.")
+}
 
 AppDataSource.initialize()
     .then(async () => {

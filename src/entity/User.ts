@@ -44,8 +44,14 @@ export class User {
             .getOne();
     }
 
+    static async getUserFromID(id:string) {
+        return await AppDataSource.manager
+            .createQueryBuilder(User, "user")
+            .where("user.id = :id", {id: id})
+            .getOne();
+    }
+
     static async getUserFromRandomToken(token:string) {
-        //TODO: This doen't fully exploret he tree of data of the project
         return await AppDataSource.manager
             .createQueryBuilder(User, "user")
             .where("user.randomToken = :token", {token: token})

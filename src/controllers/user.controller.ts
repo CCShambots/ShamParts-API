@@ -6,9 +6,40 @@ import {instanceToPlain} from "class-transformer";
 import configJson from "../../config.json";
 import path from 'path';
 import {generateRandomToken, generateSafeRandomToken, stringToHash} from "../util/AuthUtil";
+import {firebase} from "../index";
 
 export const getRoles = async (req: Request, res: Response) => {
     return res.status(200).send(configJson.roles);
+}
+
+export const testNotif = async (req: Request, res: Response) => {
+    const user = await User.getUserFromID(req.query.id as string)
+
+    if (!user) {
+        return res.status(404).send("User not found");
+    }
+
+    for(let token of user.firebase_tokens) {
+        let message = {
+            token: token,
+            notification: {
+                title: "Test Notification",
+                body: "This is a test notification"
+            }
+        }
+
+        try {
+            const response = await firebase.messaging().send(message)
+            console.log("Successfully sent message:", response)
+        } catch {
+            return res.status(500).send("Error sending notification");
+        }
+    }
+
+
+
+    return res.status(200).send("Email sent");
+
 }
 
 export const createUser = async (req: Request, res: Response) => {
