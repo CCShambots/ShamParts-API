@@ -8,6 +8,7 @@ import path from 'path';
 import {generateRandomToken, generateSafeRandomToken, stringToHash} from "../util/AuthUtil";
 import {firebase} from "../index";
 import {Server} from "../entity/Server";
+import {MulticastMessage} from "firebase-admin/lib/messaging";
 
 export const getRoles = async (req: Request, res: Response) => {
     return res.status(200).send(configJson.roles);
@@ -55,13 +56,13 @@ export const sendNotif = async (req: Request, res: Response) => {
     }
 
     let message = {
-        tokens: [req.body.firebase_tokens],
+        tokens: req.body.firebase_tokens,
         notification: {
             title: req.body.title,
             body: req.body.body
         }
     }
-
+    
     try {
         const response = await firebase.messaging().sendEachForMulticast(message)
         console.log("Message result:", response)
