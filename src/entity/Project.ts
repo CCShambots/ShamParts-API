@@ -44,9 +44,6 @@ export class Project {
     @OneToMany((type) => Part, part => part.project, {cascade: true})
     parts: Part[]
 
-    @OneToMany((type) => Part, part => part.project, {cascade: true})
-    individual_parts: Part[]
-
     @JoinTable()
     @ManyToMany(type => User)
     @Exclude()

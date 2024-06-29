@@ -14,40 +14,8 @@ export const getRoles = async (req: Request, res: Response) => {
     return res.status(200).send(configJson.roles);
 }
 
-export const testNotif = async (req: Request, res: Response) => {
-    const user = await User.getUserFromID(req.query.id as string)
-
-    if (!user) {
-        return res.status(404).send("User not found");
-    }
-
-    let message = {
-        tokens: [user.firebase_tokens],
-        notification: {
-            title: "Test Notification",
-            body: "This is a test notification"
-        }
-    }
-
-    try {
-        const response = await firebase.messaging().sendEachForMulticast(message)
-        console.log("Successfully sent message:", response)
-    } catch {
-        return res.status(500).send("Error sending notification");
-    }
-
-
-
-    return res.status(200).send("Email sent");
-
-}
-
+//Called from any servers to the main central server to notify users
 export const sendNotif = async (req: Request, res: Response) => {
-    console.log(req.body)
-    console.log(req.body.server_token)
-    console.log(req.body.firebase_tokens)
-    console.log(req.body.title)
-    console.log(req.body.body)
 
     const server = await AppDataSource.manager.findOne(Server, {where: {random_token: req.body.server_token as string}})
 
@@ -119,16 +87,11 @@ export const createUser = async (req: Request, res: Response) => {
 export const sendVerificationEndpoint = async (req: Request, res: Response) => {
     const user = await User.getUserFromEmail(req.query.email as string)
 
-    console.log(req.query.email)
-    console.log(user)
-
     if (!user) {
         return res.status(404).send("User not found");
     }
 
     let responseStatus = await sendVerificationEmail(user.email, user.name, user.randomToken)
-
-    console.log(responseStatus);
 
     return res.status(200).send("Email sent");
 }

@@ -20,6 +20,10 @@ export const createCompound = async (req:Request, res:Response) => {
 
     const project = await Project.loadProject(req.body.projectName)
 
+    if(!project.userCanWrite(user)) {
+        return res.status(403).send("You do not have write access to this project");
+    }
+
     if (!project) {
         return res.status(404).send("Project not found");
     }
@@ -65,8 +69,6 @@ export const createCompound = async (req:Request, res:Response) => {
 }
 
 export const updateCompound = async (req:Request, res:Response) => {
-    //Check user is correct
-    //Check if user is involved in this project
     const user = await User.getUserFromRandomToken(req.headers.token as string)
 
     if (!user) {
@@ -74,6 +76,10 @@ export const updateCompound = async (req:Request, res:Response) => {
     }
 
     const project = await Project.loadProject(req.body.projectName)
+
+    if(!project.userCanWrite(user)) {
+        return res.status(403).send("You do not have write access to this project");
+    }
 
     if (!project) {
         return res.status(404).send("Project not found");
@@ -110,11 +116,20 @@ export const updateCompound = async (req:Request, res:Response) => {
 }
 
 export const updateDimensions = async (req:Request, res:Response) => {
+    const user = await User.getUserFromRandomToken(req.headers.token as string)
+
+    if (!user) {
+        return res.status(404).send("User not found");
+    }
 
     const id = req.params.id;
 
     //Load the part object from the database with this id
     const loaded = await Compound.getCompoundFromId(id);
+
+    if(!loaded.project.userCanWrite(user)) {
+        return res.status(403).send("You do not have write access to this project");
+    }
 
     loaded.xDimension = req.body.xDimension;
     loaded.yDimension = req.body.yDimension;
@@ -130,10 +145,20 @@ export const updateDimensions = async (req:Request, res:Response) => {
 }
 
 export const getThumbnail = async (req:Request, res:Response) => {
+    const user = await User.getUserFromRandomToken(req.headers.token as string)
+
+    if (!user) {
+        return res.status(404).send("User not found");
+    }
+
     const id = req.params.id;
 
     //Load the part object from the database with this id
     const loaded = await Compound.getCompoundFromId(id);
+
+    if(!loaded.project.userHasAccess(user)) {
+        return res.status(403).send("You do not have access to this project");
+    }
 
     res.status(200).send(loaded.thumbnail);
 
@@ -156,6 +181,10 @@ export const assignUser = async (req:Request, res:Response) => {
     //Load the part object from the database with this id
     const loaded = await Compound.getCompoundFromId(id);
 
+    if(!loaded.project.userCanWrite(user)) {
+        return res.status(403).send("You do not have write access to this project");
+    }
+
     LogEntry.createLogEntry("assign", -1, asignee.name, user.name).addToCompound(loaded);
 
     loaded.setAsignee(asignee);
@@ -175,9 +204,13 @@ export const unAssignUser = async (req:Request, res:Response) => {
     const id = req.params.id;
 
     //Load the part object from the database with this id
-    const loaded = await Part.getPartFromId(id);
+    const loaded = await Compound.getCompoundFromId(id);
 
-    LogEntry.createLogEntry("assign", -1, loaded.asigneeName, user.name).addToPart(loaded);
+    if(!loaded.project.userCanWrite(user)) {
+        return res.status(403).send("You do not have write access to this project");
+    }
+
+    LogEntry.createLogEntry("assign", -1, loaded.asigneeName, user.name).addToCompound(loaded);
 
     loaded.asigneeName = ""
     loaded.asigneeId = -1
@@ -199,6 +232,10 @@ export const uploadImage = async (req:Request, res:Response) => {
     //Load the part object from the database with this id
     const loaded = await Compound.getCompoundFromId(id);
 
+    if(!loaded.project.userCanWrite(user)) {
+        return res.status(403).send("You do not have write access to this project");
+    }
+
     loaded.thumbnail = req.body.image;
 
     await AppDataSource.manager.save(loaded);
@@ -217,6 +254,10 @@ export const camDone = async (req:Request, res:Response) => {
 
     //Load the part object from the database with this id
     const loaded = await Compound.getCompoundFromId(id);
+
+    if(!loaded.project.userCanWrite(user)) {
+        return res.status(403).send("You do not have write access to this project");
+    }
 
     loaded.camDone = req.body.done;
 
@@ -240,6 +281,10 @@ export const updateCamInstructions = async (req:Request, res:Response) => {
     //Load the part object from the database with this id
     const loaded = await Compound.getCompoundFromId(id);
 
+    if(!loaded.project.userCanWrite(user)) {
+        return res.status(403).send("You do not have write access to this project");
+    }
+
     loaded.camInstructions = req.body.instructions;
 
     //Generate a log entry
@@ -262,6 +307,10 @@ export const fulfillCompound = async (req:Request, res:Response) => {
 
     //Load the part object from the database with this id
     const loaded = await Compound.getCompoundFromId(id);
+
+    if(!loaded.project.userCanWrite(user)) {
+        return res.status(403).send("You do not have write access to this project");
+    }
 
     //Remove the asignee
     loaded.asigneeName = ""
@@ -294,6 +343,10 @@ export const decrementPart = async (req:Request, res:Response) => {
     //Load the part object from the database with this id
     const loaded = await Compound.getCompoundFromId(id);
 
+    if(!loaded.project.userCanWrite(user)) {
+        return res.status(403).send("You do not have write access to this project");
+    }
+
     //Load all the parts in this compound and fulfill them in the correct quantities
     for(let part of loaded.parts) {
         if(part.part_id == req.body.id) {
@@ -322,6 +375,10 @@ export const incrementPart = async (req:Request, res:Response) => {
     //Load the part object from the database with this id
     const loaded = await Compound.getCompoundFromId(id);
 
+    if(!loaded.project.userCanWrite(user)) {
+        return res.status(403).send("You do not have write access to this project");
+    }
+
     //Load all the parts in this compound and fulfill them in the correct quantities
     for(let part of loaded.parts) {
         if(part.part_id == req.body.id) {
@@ -345,6 +402,10 @@ export const deleteCompound = async (req:Request, res:Response) => {
 
     //Load the part object from the database with this id
     const loaded = await Compound.getCompoundFromId(id);
+
+    if(!loaded.project.userCanWrite(user)) {
+        return res.status(403).send("You do not have write access to this project");
+    }
 
     await AppDataSource.manager.remove(loaded);
 

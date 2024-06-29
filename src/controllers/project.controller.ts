@@ -64,6 +64,10 @@ export const resyncFromOnshape = async (req: Request, res: Response) => {
 
         let project = await Project.loadProject(req.params.name);
 
+        if(!project.userIsAdmin(user)){
+            return res.status(403).send("You do not have this permission.");
+        }
+
         if (!project) {
             return res.status(404).send("Project not found");
         }
@@ -91,7 +95,7 @@ export const addRole = async (req: Request, res: Response) => {
         return res.status(404).send("User not found");
     }
 
-    // Require user to be an admin to do this
+    // Require user to be an absolute admin (not a project admin) to do this
     if (!user.roles.includes('admin')) {
         return res.status(403).send("You must be an admin to do this");
     }
@@ -134,7 +138,7 @@ export const removeRole = async (req: Request, res: Response) => {
         return res.status(404).send("User not found");
     }
 
-    // Require user to be an admin to do this
+    // Require user to be a server-wide admin (not a project admin) to do this
     if (!user.roles.includes('admin')) {
         return res.status(403).send("You must be an admin to do this");
     }
@@ -181,7 +185,7 @@ export const getProjects = async (req: Request, res: Response) => {
     if (user.roles.includes('admin')) {}
     else {
         projects = projects.filter(e => {
-            return e.getAllRoles().filter(ele => user.roles.includes(ele)).length > 0;
+            return e.userHasAccess(user);
         })
     }
     
@@ -193,7 +197,6 @@ export const getProjects = async (req: Request, res: Response) => {
 }
 
 export const getProject = async (req: Request, res: Response) => {
-    //TODO: Make loading of individual parts work
 
     //Check if user is involved in this project
     const user = await User.getUserFromRandomToken(req.headers.token as string)
@@ -209,16 +212,13 @@ export const getProject = async (req: Request, res: Response) => {
     }
 
     //If the user is an admin, just search all projects and load it absolutely
-    if (!user.roles.includes('admin') && !project.userHasAccess(user)) {
+    if (!project.userHasAccess(user)) {
         return res.status(403).send("You do not have access to this project");
     }
 
     if (!project) {
         return res.status(404).send("Project not found");
     }
-
-    //TODO: Fix individual parts issues
-    project.individual_parts = [];
 
     return res.send(instanceToPlain(project));
 }

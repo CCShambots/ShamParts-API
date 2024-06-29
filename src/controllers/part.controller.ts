@@ -29,10 +29,22 @@ export const getPart = async (req:Request, res:Response) => {
 
 
 export const loadPartThumbnail = async (req:Request, res:Response) => {
+
+    const user = await User.getUserFromRandomToken(req.headers.token as string)
+
+    if(!user) {
+        return res.status(404).send("User not found");
+    }
+
+
     const id = req.params.id;
 
     //Load the part object from the database with this id
     const loaded = await Part.getPartFromId(id);
+
+    if(!loaded.project.userHasAccess(user)) {
+        return res.status(403).send("You do not have access to this part");
+    }
 
     //Load the thumbnail from Onshape
     const thumbnail = await Onshape.getThumbnailForElement(
@@ -70,6 +82,10 @@ export const reportBreakage = async (req:Request, res:Response) => {
     //Load the part object from the database with this id
     const loaded = await Part.getPartFromId(id);
 
+    if(!loaded.project.userCanWrite(user)) {
+        return res.status(403).send("You do not have write access to this part");
+    }
+
     if(loaded.quantityInStock < quantity)
         return res.status(400).send("You broke more parts than you have?");
 
@@ -96,6 +112,10 @@ export const requestAdditional = async (req:Request, res:Response) => {
     //Load the part object from the database with this id
     const loaded = await Part.getPartFromId(id);
 
+    if(!loaded.project.userCanWrite(user)) {
+        return res.status(403).send("You do not have write access to this part");
+    }
+
     loaded.quantityRequested += quantity;
 
     LogEntry.createLogEntry("request", quantity, "", user.name).addToPart(loaded)
@@ -118,6 +138,10 @@ export const fulfillRequest = async (req:Request, res:Response) => {
 
     //Load the part object from the database with this id
     const loaded = await Part.getPartFromId(id);
+
+    if(!loaded.project.userCanWrite(user)) {
+        return res.status(403).send("You do not have write access to this part");
+    }
 
     loaded.quantityInStock += quantity;
     loaded.quantityRequested -= quantity;
@@ -146,6 +170,10 @@ export const mergeWithOthers = async (req:Request, res:Response) => {
 
     if(!loaded) {
         return res.status(404).send("Part not found");
+    }
+
+    if(!loaded.project.userCanWrite(user)) {
+        return res.status(403).send("You do not have write access to this part");
     }
 
     if(!loaded.part_combines) {loaded.part_combines = []}
@@ -211,6 +239,10 @@ export const assignUser = async (req:Request, res:Response) => {
     //Load the part object from the database with this id
     const loaded = await Part.getPartFromId(id);
 
+    if(!loaded.project.userCanWrite(user)) {
+        return res.status(403).send("You do not have write access to this part");
+    }
+
     LogEntry.createLogEntry("assign", -1, asignee.name, user.name).addToPart(loaded);
 
     loaded.setAsignee(asignee);
@@ -234,6 +266,10 @@ export const unAssignUser = async (req:Request, res:Response) => {
     //Load the part object from the database with this id
     const loaded = await Part.getPartFromId(id);
 
+    if(!loaded.project.userCanWrite(user)) {
+        return res.status(403).send("You do not have write access to this part");
+    }
+
     LogEntry.createLogEntry("assign", -1, loaded.asigneeName, user.name).addToPart(loaded);
 
     loaded.asigneeName = ""
@@ -255,6 +291,10 @@ export const camDone = async (req:Request, res:Response) => {
 
     //Load the part object from the database with this id
     const loaded = await Part.getPartFromId(id);
+
+    if(!loaded.project.userCanWrite(user)) {
+        return res.status(403).send("You do not have write access to this part");
+    }
 
     loaded.camDone = req.body.done;
 
@@ -278,6 +318,10 @@ export const updateCamInstructions = async (req:Request, res:Response) => {
     //Load the part object from the database with this id
     const loaded = await Part.getPartFromId(id);
 
+    if(!loaded.project.userCanWrite(user)) {
+        return res.status(403).send("You do not have write access to this part");
+    }
+
     loaded.camInstructions = req.body.instructions;
 
     //Generate a log entry
@@ -300,6 +344,10 @@ export const setDimensions = async (req:Request, res:Response) => {
 
     //Load the part object from the database with this id
     const loaded = await Part.getPartFromId(id);
+
+    if(!loaded.project.userCanWrite(user)) {
+        return res.status(403).send("You do not have write access to this part");
+    }
 
     //Make sure each dimension is to exactly one decimal place
     let d1 = parseFloat(req.body.d1).toFixed(3);
@@ -339,6 +387,10 @@ export const setPartType = async (req:Request, res:Response) => {
 
     //Load the part object from the database with this id
     const loaded = await Part.getPartFromId(id);
+
+    if(!loaded.project.userCanWrite(user)) {
+        return res.status(403).send("You do not have write access to this part");
+    }
 
     //Make sure the part type is valid
     if(!configJson.part_types.includes(req.body.partType)) {
