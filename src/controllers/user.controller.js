@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteUser = exports.resetPassword = exports.resetPasswordPage = exports.resetPasswordEmail = exports.forgotPassword = exports.changeUserName = exports.getUserFromToken = exports.getUser = exports.getUsers = exports.removeUserRole = exports.setUserRoles = exports.addUserRole = exports.cancelUser = exports.logOutUser = exports.authenticateUser = exports.verifyUser = exports.sendVerificationEndpoint = exports.createUser = exports.getRoles = void 0;
+exports.deleteUser = exports.resetPassword = exports.resetPasswordPage = exports.resetPasswordEmail = exports.forgotPassword = exports.changeUserName = exports.getUserFromToken = exports.getUser = exports.getUsers = exports.removeUserRole = exports.setUserRoles = exports.addUserRole = exports.cancelUser = exports.logOutUser = exports.authenticateUser = exports.verifyUser = exports.sendVerificationEndpoint = exports.createUser = exports.sendNotif = exports.getRoles = void 0;
 const data_source_1 = require("../data-source");
 const User_1 = require("../entity/User");
 const Mailjet_1 = require("../util/Mailjet");
@@ -20,10 +20,36 @@ const class_transformer_1 = require("class-transformer");
 const config_json_1 = __importDefault(require("../../config.json"));
 const path_1 = __importDefault(require("path"));
 const AuthUtil_1 = require("../util/AuthUtil");
+const index_1 = require("../index");
+const Server_1 = require("../entity/Server");
+const Project_1 = require("../entity/Project");
 const getRoles = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     return res.status(200).send(config_json_1.default.roles);
 });
 exports.getRoles = getRoles;
+//Called from any servers to the main central server to notify users
+const sendNotif = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const server = yield data_source_1.AppDataSource.manager.findOne(Server_1.Server, { where: { random_token: req.body.server_token } });
+    if (server === null) {
+        return res.status(404).send("Server not found");
+    }
+    let message = {
+        tokens: req.body.firebase_tokens,
+        notification: {
+            title: req.body.title,
+            body: req.body.body
+        }
+    };
+    try {
+        const response = yield index_1.firebase.messaging().sendEachForMulticast(message);
+        console.log("Message result:", response);
+    }
+    catch (_a) {
+        return res.status(500).send("Error sending notification");
+    }
+    return res.status(200).send("Sent Notification Successfully");
+});
+exports.sendNotif = sendNotif;
 const createUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     if (!req.query.email || !req.query.password || !req.query.name)
         return res.status(400).send("Missing parameters");
@@ -59,13 +85,10 @@ const createUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
 exports.createUser = createUser;
 const sendVerificationEndpoint = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const user = yield User_1.User.getUserFromEmail(req.query.email);
-    console.log(req.query.email);
-    console.log(user);
     if (!user) {
         return res.status(404).send("User not found");
     }
     let responseStatus = yield (0, Mailjet_1.sendVerificationEmail)(user.email, user.name, user.randomToken);
-    console.log(responseStatus);
     return res.status(200).send("Email sent");
 });
 exports.sendVerificationEndpoint = sendVerificationEndpoint;
@@ -194,9 +217,15 @@ const getUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     let verificationStatus = yield verifyUserFromToken(req.headers.token);
     if (verificationStatus !== 200)
         return res.status(verificationStatus).send("Invalid token");
-    const users = yield data_source_1.AppDataSource.manager
+    let users = yield data_source_1.AppDataSource.manager
         .createQueryBuilder(User_1.User, "user")
         .getMany();
+    if (req.query.project) {
+        let project = yield Project_1.Project.loadProject(req.query.project);
+        users = users.filter(e => {
+            return project.userHasAccess(e);
+        });
+    }
     const plainUsers = users.map(e => (0, class_transformer_1.instanceToPlain)(e));
     return res.status(200).send(plainUsers);
 });

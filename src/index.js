@@ -35,6 +35,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.firebaseActive = exports.firebase = void 0;
 const data_source_1 = require("./data-source");
 const express_1 = __importDefault(require("express"));
 const morgan_1 = __importDefault(require("morgan"));
@@ -45,12 +46,18 @@ const config_json_1 = __importDefault(require("../config.json"));
 const Server_1 = require("./entity/Server");
 const fs_1 = require("fs");
 const AuthUtil_1 = require("./util/AuthUtil"); // Use the promises API from fs module
-const firebase = require("firebase-admin");
-const serviceAccount = require("../firebase.config.json");
-firebase.initializeApp({
-    credential: firebase.credential.cert(serviceAccount)
-});
-module.exports = { firebase };
+exports.firebase = require("firebase-admin");
+exports.firebaseActive = false;
+try {
+    const serviceAccount = require("../firebase.config.json");
+    exports.firebase.initializeApp({
+        credential: exports.firebase.credential.cert(serviceAccount)
+    });
+    exports.firebaseActive = true;
+}
+catch (e) {
+    console.log("Firebase config not found, skipping firebase initialization. If this is not the main server, this is normal.");
+}
 data_source_1.AppDataSource.initialize()
     .then(() => __awaiter(void 0, void 0, void 0, function* () {
     var _a;

@@ -17,13 +17,12 @@ import {
     getRoles,
     setUserRoles,
     sendVerificationEndpoint,
-    resetPasswordEmail, testNotif, sendNotif, logOutUser
+    resetPasswordEmail, logOutUser, sendNotif
 } from "../controllers/user.controller";
 
 
 const router = express.Router();
 
-router.get("/testnotif", testNotif)
 router.post('/sendNotif', sendNotif)
 
 router.get("/", getUser)

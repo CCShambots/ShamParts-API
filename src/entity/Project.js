@@ -121,10 +121,6 @@ __decorate([
     __metadata("design:type", Array)
 ], Project.prototype, "parts", void 0);
 __decorate([
-    (0, typeorm_1.OneToMany)((type) => Part_1.Part, part => part.project, { cascade: true }),
-    __metadata("design:type", Array)
-], Project.prototype, "individual_parts", void 0);
-__decorate([
     (0, typeorm_2.JoinTable)(),
     (0, typeorm_1.ManyToMany)(type => User_1.User),
     (0, class_transformer_1.Exclude)(),

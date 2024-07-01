@@ -9,6 +9,7 @@ import {generateRandomToken, generateSafeRandomToken, stringToHash} from "../uti
 import {firebase} from "../index";
 import {Server} from "../entity/Server";
 import {MulticastMessage} from "firebase-admin/lib/messaging";
+import {Project} from "../entity/Project";
 
 export const getRoles = async (req: Request, res: Response) => {
     return res.status(200).send(configJson.roles);
@@ -261,9 +262,16 @@ export const getUsers = async (req: Request, res: Response) => {
 
     if (verificationStatus !== 200) return res.status(verificationStatus).send("Invalid token");
 
-    const users = await AppDataSource.manager
+    let users = await AppDataSource.manager
         .createQueryBuilder(User, "user")
         .getMany();
+
+    if(req.query.project) {
+        let project = await Project.loadProject(req.query.project as string);
+        users = users.filter(e => {
+            return project.userHasAccess(e);
+        })
+    }
 
     const plainUsers = users.map(e => instanceToPlain(e))
 

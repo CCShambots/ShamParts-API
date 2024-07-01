@@ -35,9 +35,16 @@ let User = User_1 = class User {
                 .getOne();
         });
     }
+    static getUserFromID(id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield data_source_1.AppDataSource.manager
+                .createQueryBuilder(User_1, "user")
+                .where("user.id = :id", { id: id })
+                .getOne();
+        });
+    }
     static getUserFromRandomToken(token) {
         return __awaiter(this, void 0, void 0, function* () {
-            //TODO: This doen't fully exploret he tree of data of the project
             return yield data_source_1.AppDataSource.manager
                 .createQueryBuilder(User_1, "user")
                 .where("user.randomToken = :token", { token: token })
@@ -58,7 +65,7 @@ __decorate([
     __metadata("design:type", String)
 ], User.prototype, "email", void 0);
 __decorate([
-    (0, typeorm_1.Column)("text", { array: true, nullable: true }),
+    (0, typeorm_1.Column)("text", { array: true, default: [] }),
     (0, class_transformer_1.Exclude)(),
     __metadata("design:type", Array)
 ], User.prototype, "firebase_tokens", void 0);

@@ -53,6 +53,9 @@ const resyncFromOnshape = (req, res) => __awaiter(void 0, void 0, void 0, functi
         return res.status(404).send("User not found");
     }
     let project = yield Project_1.Project.loadProject(req.params.name);
+    if (!project.userIsAdmin(user)) {
+        return res.status(403).send("You do not have this permission.");
+    }
     if (!project) {
         return res.status(404).send("Project not found");
     }
@@ -71,7 +74,7 @@ const addRole = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     if (!user) {
         return res.status(404).send("User not found");
     }
-    // Require user to be an admin to do this
+    // Require user to be an absolute admin (not a project admin) to do this
     if (!user.roles.includes('admin')) {
         return res.status(403).send("You must be an admin to do this");
     }
@@ -107,7 +110,7 @@ const removeRole = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     if (!user) {
         return res.status(404).send("User not found");
     }
-    // Require user to be an admin to do this
+    // Require user to be a server-wide admin (not a project admin) to do this
     if (!user.roles.includes('admin')) {
         return res.status(403).send("You must be an admin to do this");
     }
@@ -147,7 +150,7 @@ const getProjects = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     if (user.roles.includes('admin')) { }
     else {
         projects = projects.filter(e => {
-            return e.getAllRoles().filter(ele => user.roles.includes(ele)).length > 0;
+            return e.userHasAccess(user);
         });
     }
     if (!projects) {
@@ -157,7 +160,6 @@ const getProjects = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
 });
 exports.getProjects = getProjects;
 const getProject = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    //TODO: Make loading of individual parts work
     //Check if user is involved in this project
     const user = yield User_1.User.getUserFromRandomToken(req.headers.token);
     if (!user) {
@@ -168,14 +170,12 @@ const getProject = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         return res.status(404).send("Project not found");
     }
     //If the user is an admin, just search all projects and load it absolutely
-    if (!user.roles.includes('admin') && !project.userHasAccess(user)) {
+    if (!project.userHasAccess(user)) {
         return res.status(403).send("You do not have access to this project");
     }
     if (!project) {
         return res.status(404).send("Project not found");
     }
-    //TODO: Fix individual parts issues
-    project.individual_parts = [];
     return res.send((0, class_transformer_1.instanceToPlain)(project));
 });
 exports.getProject = getProject;

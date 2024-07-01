@@ -21,6 +21,7 @@ const User_1 = require("../entity/User");
 const class_transformer_1 = require("class-transformer");
 const config_json_1 = __importDefault(require("../../config.json"));
 const PartCombine_1 = require("../entity/PartCombine");
+const NotificationUtil_1 = require("../notifications/NotificationUtil");
 const getPart = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const id = req.params.id;
     //Load the part object from the database with this id
@@ -34,9 +35,16 @@ const getPart = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 });
 exports.getPart = getPart;
 const loadPartThumbnail = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = yield User_1.User.getUserFromRandomToken(req.headers.token);
+    if (!user) {
+        return res.status(404).send("User not found");
+    }
     const id = req.params.id;
     //Load the part object from the database with this id
     const loaded = yield Part_1.Part.getPartFromId(id);
+    if (!loaded.project.userHasAccess(user)) {
+        return res.status(403).send("You do not have access to this part");
+    }
     //Load the thumbnail from Onshape
     const thumbnail = yield Onshape_1.Onshape.getThumbnailForElement(loaded.onshape_document_id, loaded.onshape_wvm_id, loaded.onshape_wvm_type, loaded.onshape_element_id, loaded);
     if (thumbnail === "fail") {
@@ -57,6 +65,9 @@ const reportBreakage = (req, res) => __awaiter(void 0, void 0, void 0, function*
     const id = req.params.id;
     //Load the part object from the database with this id
     const loaded = yield Part_1.Part.getPartFromId(id);
+    if (!loaded.project.userCanWrite(user)) {
+        return res.status(403).send("You do not have write access to this part");
+    }
     if (loaded.quantityInStock < quantity)
         return res.status(400).send("You broke more parts than you have?");
     loaded.quantityInStock -= quantity;
@@ -74,6 +85,9 @@ const requestAdditional = (req, res) => __awaiter(void 0, void 0, void 0, functi
     const id = req.params.id;
     //Load the part object from the database with this id
     const loaded = yield Part_1.Part.getPartFromId(id);
+    if (!loaded.project.userCanWrite(user)) {
+        return res.status(403).send("You do not have write access to this part");
+    }
     loaded.quantityRequested += quantity;
     LogEntry_1.LogEntry.createLogEntry("request", quantity, "", user.name).addToPart(loaded);
     yield data_source_1.AppDataSource.manager.save(loaded);
@@ -89,6 +103,9 @@ const fulfillRequest = (req, res) => __awaiter(void 0, void 0, void 0, function*
     const id = req.params.id;
     //Load the part object from the database with this id
     const loaded = yield Part_1.Part.getPartFromId(id);
+    if (!loaded.project.userCanWrite(user)) {
+        return res.status(403).send("You do not have write access to this part");
+    }
     loaded.quantityInStock += quantity;
     loaded.quantityRequested -= quantity;
     //Make sure the quantity requested is not negative
@@ -108,6 +125,9 @@ const mergeWithOthers = (req, res) => __awaiter(void 0, void 0, void 0, function
     const loaded = yield Part_1.Part.getPartFromId(id);
     if (!loaded) {
         return res.status(404).send("Part not found");
+    }
+    if (!loaded.project.userCanWrite(user)) {
+        return res.status(403).send("You do not have write access to this part");
     }
     if (!loaded.part_combines) {
         loaded.part_combines = [];
@@ -157,8 +177,12 @@ const assignUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     const id = req.params.id;
     //Load the part object from the database with this id
     const loaded = yield Part_1.Part.getPartFromId(id);
+    if (!loaded.project.userCanWrite(user)) {
+        return res.status(403).send("You do not have write access to this part");
+    }
     LogEntry_1.LogEntry.createLogEntry("assign", -1, asignee.name, user.name).addToPart(loaded);
     loaded.setAsignee(asignee);
+    (0, NotificationUtil_1.sendNotification)(asignee.firebase_tokens, "Part Assigned", `You have been assigned part ${loaded.number}`);
     yield data_source_1.AppDataSource.manager.save(loaded);
     res.status(200).send((0, class_transformer_1.instanceToPlain)(loaded));
 });
@@ -171,6 +195,9 @@ const unAssignUser = (req, res) => __awaiter(void 0, void 0, void 0, function* (
     const id = req.params.id;
     //Load the part object from the database with this id
     const loaded = yield Part_1.Part.getPartFromId(id);
+    if (!loaded.project.userCanWrite(user)) {
+        return res.status(403).send("You do not have write access to this part");
+    }
     LogEntry_1.LogEntry.createLogEntry("assign", -1, loaded.asigneeName, user.name).addToPart(loaded);
     loaded.asigneeName = "";
     loaded.asigneeId = -1;
@@ -186,6 +213,9 @@ const camDone = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const id = req.params.id;
     //Load the part object from the database with this id
     const loaded = yield Part_1.Part.getPartFromId(id);
+    if (!loaded.project.userCanWrite(user)) {
+        return res.status(403).send("You do not have write access to this part");
+    }
     loaded.camDone = req.body.done;
     //Generate a log entry
     LogEntry_1.LogEntry.createLogEntry("camUpload", -1, "CAM Done: " + req.body.done, user.name).addToPart(loaded);
@@ -201,6 +231,9 @@ const updateCamInstructions = (req, res) => __awaiter(void 0, void 0, void 0, fu
     const id = req.params.id;
     //Load the part object from the database with this id
     const loaded = yield Part_1.Part.getPartFromId(id);
+    if (!loaded.project.userCanWrite(user)) {
+        return res.status(403).send("You do not have write access to this part");
+    }
     loaded.camInstructions = req.body.instructions;
     //Generate a log entry
     LogEntry_1.LogEntry.createLogEntry("camChange", -1, "CAM Instructions", user.name).addToPart(loaded);
@@ -216,6 +249,9 @@ const setDimensions = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     const id = req.params.id;
     //Load the part object from the database with this id
     const loaded = yield Part_1.Part.getPartFromId(id);
+    if (!loaded.project.userCanWrite(user)) {
+        return res.status(403).send("You do not have write access to this part");
+    }
     //Make sure each dimension is to exactly one decimal place
     let d1 = parseFloat(req.body.d1).toFixed(3);
     let d2 = parseFloat(req.body.d2).toFixed(3);
@@ -246,6 +282,9 @@ const setPartType = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     const id = req.params.id;
     //Load the part object from the database with this id
     const loaded = yield Part_1.Part.getPartFromId(id);
+    if (!loaded.project.userCanWrite(user)) {
+        return res.status(403).send("You do not have write access to this part");
+    }
     //Make sure the part type is valid
     if (!config_json_1.default.part_types.includes(req.body.partType)) {
         return res.status(400).send("Invalid part type");
