@@ -15,7 +15,7 @@ export class User {
     @Column()
     email: string
 
-    @Column("text", {array: true, default: []})
+    @Column("text", {array: true, default: [], nullable: true})
     @Exclude()
     firebase_tokens: string[]
 
