@@ -8,6 +8,7 @@ import {CompoundPart} from "../entity/CompoundPart";
 import {instanceToPlain} from "class-transformer";
 import {Part} from "../entity/Part";
 import {LogEntry} from "../entity/LogEntry";
+import {sendNotification} from "../notifications/NotificationUtil";
 
 export const createCompound = async (req:Request, res:Response) => {
     //Check user is correct
@@ -188,6 +189,8 @@ export const assignUser = async (req:Request, res:Response) => {
     LogEntry.createLogEntry("assign", -1, asignee.name, user.name).addToCompound(loaded);
 
     loaded.setAsignee(asignee);
+
+    sendNotification(asignee.firebase_tokens, "Compound Assigned", `You have been assigned compound ${loaded.name}`);
 
     await AppDataSource.manager.save(loaded);
 
