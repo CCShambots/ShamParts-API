@@ -18,6 +18,7 @@ const CompoundPart_1 = require("../entity/CompoundPart");
 const class_transformer_1 = require("class-transformer");
 const Part_1 = require("../entity/Part");
 const LogEntry_1 = require("../entity/LogEntry");
+const NotificationUtil_1 = require("../notifications/NotificationUtil");
 const createCompound = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     //Check user is correct
     //Check if user is involved in this project
@@ -144,6 +145,7 @@ const assignUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     }
     LogEntry_1.LogEntry.createLogEntry("assign", -1, asignee.name, user.name).addToCompound(loaded);
     loaded.setAsignee(asignee);
+    (0, NotificationUtil_1.sendNotification)(asignee.firebase_tokens, "Compound Assigned", `You have been assigned compound ${loaded.name}`);
     yield data_source_1.AppDataSource.manager.save(loaded);
     res.status(200).send((0, class_transformer_1.instanceToPlain)(loaded));
 });
