@@ -35,6 +35,11 @@ export const sendNotif = async (req: Request, res: Response) => {
     try {
         const response = await firebase.messaging().sendEachForMulticast(message)
         console.log("Message result:", response)
+        response.responses.forEach((e) => {
+            if(!e.success) {
+                console.log("Error sending notification to token:", e.error.message)
+            }
+        })
     } catch {
         return res.status(500).send("Error sending notification");
     }
